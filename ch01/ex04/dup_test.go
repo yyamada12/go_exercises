@@ -17,10 +17,10 @@ func Test_countLines(t *testing.T) {
 	countLines(f2, "file2", counts, filenamesByLine)
 
 	if counts["foo"] != 2 {
-		t.Errorf("counts = %d, want 2", counts["foo"])
+		t.Errorf("counts[\"foo\"] = %d, want 2", counts["foo"])
 	}
 	if counts["bar"] != 2 {
-		t.Errorf("counts = %d, want 2", counts["bar"])
+		t.Errorf("counts[\"bar\"] = %d, want 2", counts["bar"])
 	}
 
 	if _, ok := filenamesByLine["foo"]["file1"]; !ok {
