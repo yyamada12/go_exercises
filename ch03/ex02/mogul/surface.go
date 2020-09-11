@@ -66,7 +66,7 @@ func corner(i, j int) (float64, float64, error) {
 
 func f(x, y float64) float64 {
 	r := math.Hypot(x, y) // distance from (0,0)
-	return math.Tanh(math.Max(r-1, -3)) + 1
+	return math.Tanh(math.Max(1-r, -3))
 }
 
 //!-
