@@ -26,11 +26,16 @@ func main() {
 }
 
 func delimiter(s string) string {
+	prefix := ""
+	if strings.HasPrefix(s, "+") || strings.HasPrefix(s, "-") {
+		prefix = s[:1]
+		s = s[1:]
+	}
 	if strings.ContainsRune(s, '.') {
 		splitted := strings.Split(s, ".")
-		return comma(splitted[0]) + "." + space(splitted[1])
+		return prefix + comma(splitted[0]) + "." + space(splitted[1])
 	}
-	return comma(s)
+	return prefix + comma(s)
 }
 
 // comma inserts commas in a non-negative decimal integer string.

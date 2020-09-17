@@ -17,6 +17,8 @@ func Test_delimiter(t *testing.T) {
 		{"4 Digit Int", "1234", "1,234"},
 		{"10 Digit Int", "1234567890", "1,234,567,890"},
 		{"10 Digit Float", "1234.567890", "1,234.567 890"},
+		{"10 Digit Int with sign", "-1234567890", "-1,234,567,890"},
+		{"10 Digit Float with sign", "-1234.567890", "-1,234.567 890"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
