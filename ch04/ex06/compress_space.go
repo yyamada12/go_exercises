@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Println(string(compressSpace([]byte("hello　世界!"))))
+	fmt.Println(string(compressSpace([]byte("hello\t 　 世界!"))))
 }
 
 func compressSpace(s []byte) []byte {
@@ -15,8 +15,10 @@ func compressSpace(s []byte) []byte {
 	for j := 0; j < len(s); {
 		r, size := utf8.DecodeRune(s[j:])
 		if unicode.IsSpace(r) {
-			s[i] = ' '
-			i++
+			if i == 0 || s[i-1] != ' ' {
+				s[i] = ' '
+				i++
+			}
 		} else {
 			copy(s[i:i+size], s[j:j+size])
 			i += size
