@@ -128,7 +128,6 @@ func handleResp(resp *http.Response, expectedStatus int, errMsg string) (*IssueR
 
 	var result IssueResult
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		resp.Body.Close()
 		return nil, err
 	}
 	return &result, nil
