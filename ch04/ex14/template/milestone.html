@@ -1,0 +1,23 @@
+{{if .}}
+<h1>Milestones</h1>
+<table>
+  <tr style="text-align: left">
+    <th>#</th>
+    <th>State</th>
+    <th>Creator</th>
+    <th>Title</th>
+    <th>Description</th>
+  </tr>
+  {{range .}}
+  <tr>
+    <td><a href="{{.HTMLURL}}">{{.Number}}</a></td>
+    <td>{{.State}}</td>
+    <td><a href="{{.Creator.HTMLURL}}">{{.Creator.Login}}</a></td>
+    <td><a href="{{.HTMLURL}}">{{.Title}}</a></td>
+    <td>{{.Description}}</td>
+  </tr>
+  {{end}}
+</table>
+{{else}}
+<h1>No Milestones.</h1>
+{{end}}

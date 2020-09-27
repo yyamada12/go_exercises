@@ -1,0 +1,17 @@
+{{if .}}
+<h1>Users</h1>
+<table>
+  <!-- <tr style="text-align: left">
+    <th>#</th>
+    <th>user ID</th>
+  </tr> -->
+  {{range .}}
+  <tr>
+    <td><img height="32" width="32" style="border-radius: 50%;" src="{{.AvatarURL}}"></img></td>
+    <td><a href="{{.HTMLURL}}">{{.Login}}</a></td>
+  </tr>
+  {{end}}
+</table>
+{{else}}
+<h1>No Users.</h1>
+{{end}}
