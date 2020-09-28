@@ -1,4 +1,4 @@
-package cmpl
+package bigcomplex
 
 import "math/big"
 

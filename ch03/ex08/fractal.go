@@ -9,15 +9,16 @@ import (
 	"math/cmplx"
 	"os"
 
-	"github.com/yyamada12/go_exercises/ch03/ex08/cmpl"
+	"github.com/yyamada12/go_exercises/ch03/ex08/bigcomplex"
 )
 
 var iterations = uint8(4)
 
 func main() {
 
-	if len(os.Args[0]) < 2 {
+	if len(os.Args) < 2 {
 		printUsage()
+		return
 	}
 	var newton func(x, y float64) color.Color
 	switch os.Args[1] {
@@ -30,6 +31,7 @@ func main() {
 	case "complexRat":
 	default:
 		printUsage()
+		return
 	}
 
 	const (
@@ -37,8 +39,8 @@ func main() {
 		xminNum, yminNum, xmaxNum, ymaxNum = 97, 0, 100, 3
 		denom                              = 100
 
-		xmin, ymin, xmax, ymax = 0.05, 0.05, 0.08, 0.08
-		width, height          = 30, 30
+		xmin, ymin, xmax, ymax = 0.97, 0, 1, 0.03
+		width, height          = 1024, 1024
 	)
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -74,14 +76,14 @@ OPTION:
 	complex128		use complex128
 	complexFloat	use complexFloat based on big.Float
 	complexRat		use	complexRat based on big.Rat`)
-	os.Exit(1)
 }
 
 func newtonWithComplex64(x, y float64) color.Color {
 	z := complex64(complex(x, y))
 	for i := uint8(0); i < iterations; i++ {
 		z -= (z - 1/(z*z*z)) / 4
-		if cmplx.Abs(complex128(z*z*z*z-1)) < 1e-6 {
+		if cmplx.Abs(complex128(z-1)) < 1e-6 || cmplx.Abs(complex128(z-1i)) < 1e-6 || cmplx.Abs(complex128(z+1)) < 1e-6 || cmplx.Abs(complex128(z+1i)) < 1e-6 {
+			// if cmplx.Abs(complex128(z*z*z*z-1)) < 1e-6 {
 			return color.RGBA{242 - i, 213 - 7*i, 15 + 3*i, 255}
 		}
 	}
@@ -92,7 +94,8 @@ func newtonWithComplex128(x, y float64) color.Color {
 	z := complex(x, y)
 	for i := uint8(0); i < iterations; i++ {
 		z -= (z - 1/(z*z*z)) / 4
-		if cmplx.Abs(z*z*z*z-1) < 1e-6 {
+		if cmplx.Abs(z-1) < 1e-6 || cmplx.Abs(z-1i) < 1e-6 || cmplx.Abs(z+1) < 1e-6 || cmplx.Abs(z+1i) < 1e-6 {
+			// if cmplx.Abs(z*z*z*z-1) < 1e-6 {
 			return color.RGBA{242 - i, 213 - 7*i, 15 + 3*i, 255}
 		}
 	}
@@ -103,13 +106,15 @@ func newtonWithComplexFloat(x, y float64) color.Color {
 	if x == 0 && y == 0 {
 		return color.Black
 	}
-	z := cmpl.NewCmplFloat(big.NewFloat(x), big.NewFloat(y))
+	z := bigcomplex.NewCmplFloat(big.NewFloat(x), big.NewFloat(y))
 	for i := uint8(0); i < iterations; i++ {
-		one := cmpl.NewCmplFloat(big.NewFloat(1), big.NewFloat(0))
-		four := cmpl.NewCmplFloat(big.NewFloat(4), big.NewFloat(0))
+		one := bigcomplex.NewCmplFloat(big.NewFloat(1), big.NewFloat(0))
+		onei := bigcomplex.NewCmplFloat(big.NewFloat(0), big.NewFloat(1))
+		four := bigcomplex.NewCmplFloat(big.NewFloat(4), big.NewFloat(0))
 		// z -= (z - 1/(z*z*z)) / 4
 		z = z.Minus(z.Minus(one.Divides(z.Times(z).Times(z))).Divides(four))
-		if z.Times(z).Times(z).Times(z).Minus(one).SquaredAbs().Cmp(big.NewFloat(1e-12)) < 0 {
+		// if z.Times(z).Times(z).Times(z).Minus(one).SquaredAbs().Cmp(big.NewFloat(1e-12)) < 0 {
+		if z.Minus(one).SquaredAbs().Cmp(big.NewFloat(1e-12)) < 0 || z.Minus(onei).SquaredAbs().Cmp(big.NewFloat(1e-12)) < 0 || z.Plus(one).SquaredAbs().Cmp(big.NewFloat(1e-12)) < 0 || z.Plus(onei).SquaredAbs().Cmp(big.NewFloat(1e-12)) < 0 {
 			return color.RGBA{242 - i, 213 - 7*i, 15 + 3*i, 255}
 		}
 	}
@@ -120,13 +125,15 @@ func newtonWithComplexRat(x, y *big.Rat) color.Color {
 	if x.Sign() == 0 && y.Sign() == 0 {
 		return color.Black
 	}
-	z := cmpl.NewCmplRat(x, y)
+	z := bigcomplex.NewCmplRat(x, y)
 	for i := uint8(0); i < iterations; i++ {
-		one := cmpl.NewCmplRat(big.NewRat(1, 1), big.NewRat(0, 1))
-		four := cmpl.NewCmplRat(big.NewRat(4, 1), big.NewRat(0, 1))
+		one := bigcomplex.NewCmplRat(big.NewRat(1, 1), big.NewRat(0, 1))
+		onei := bigcomplex.NewCmplRat(big.NewRat(0, 1), big.NewRat(1, 1))
+		four := bigcomplex.NewCmplRat(big.NewRat(4, 1), big.NewRat(0, 1))
 		// z -= (z - 1/(z*z*z)) / 4
 		z = z.Minus(z.Minus(one.Divides(z.Times(z).Times(z))).Divides(four))
-		if z.Times(z).Times(z).Times(z).Minus(one).SquaredAbs().Cmp(big.NewRat(1, 1e12)) < 0 {
+		// if z.Times(z).Times(z).Times(z).Minus(one).SquaredAbs().Cmp(big.NewRat(1, 1e12)) < 0 {
+		if z.Minus(one).SquaredAbs().Cmp(big.NewRat(1, 1e12)) < 0 || z.Minus(onei).SquaredAbs().Cmp(big.NewRat(1, 1e12)) < 0 || z.Plus(one).SquaredAbs().Cmp(big.NewRat(1, 1e12)) < 0 || z.Plus(onei).SquaredAbs().Cmp(big.NewRat(1, 1e12)) < 0 {
 			return color.RGBA{242 - i, 213 - 7*i, 15 + 3*i, 255}
 		}
 	}

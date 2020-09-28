@@ -55,11 +55,13 @@ func BenchmarkNewtonWithComplexFloat(b *testing.B) {
 
 func BenchmarkNewtonWithComplexRat(b *testing.B) {
 	iterations = 4
-	for py := 0; py < height; py++ {
-		y := big.NewRat(int64(py)*(ymaxNum-yminNum)+yminNum*height, height*denom)
-		for px := 0; px < width; px++ {
-			x := big.NewRat(int64(px)*(xmaxNum-xminNum)+xminNum*width, width*denom)
-			newtonWithComplexRat(x, y)
+	for i := 0; i < b.N; i++ {
+		for py := 0; py < height; py++ {
+			y := big.NewRat(int64(py)*(ymaxNum-yminNum)+yminNum*height, height*denom)
+			for px := 0; px < width; px++ {
+				x := big.NewRat(int64(px)*(xmaxNum-xminNum)+xminNum*width, width*denom)
+				newtonWithComplexRat(x, y)
+			}
 		}
 	}
 }
