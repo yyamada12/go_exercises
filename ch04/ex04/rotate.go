@@ -3,20 +3,26 @@ package main
 import "fmt"
 
 func main() {
-	a := []int{0, 1, 2, 3, 4, 5}
-	rotate(a, 2)
-	fmt.Println(a) // "[2 3 4 5 0 1]"
+	a := []int{0, 1, 2, 3, 4}
+	leftRotate(a, 2)
+	fmt.Println(a) // "[2 3 4 0 1]"
 
 }
 
-func rotate(s []int, n int) {
-	swapRotate(s, 0, len(s), n)
+func leftRotate(s []int, n int) {
+	l := len(s)
+	n %= l
+	if n < 0 {
+		n += l
+	}
+	swapRotate(s, 0, l, n)
 }
 
 // A B -> B A
 // A: [start, start+1, ... , start+n-1]
 // B: [start+n, start+n+1, ... , start+len-1]
 func swapRotate(s []int, start, len, n int) {
+
 	if n == 0 || n == len {
 		return
 	}
@@ -38,7 +44,7 @@ func swapRotate(s []int, start, len, n int) {
 		// AL AR B -> B AR AL
 		blockSwap(s, start, n, len-n)
 		// B AR AL -> B AL AR (= B A)
-		swapRotate(s, start+len-n, n-(len-n), n)
+		swapRotate(s, start+len-n, n, n-(len-n))
 	}
 }
 
