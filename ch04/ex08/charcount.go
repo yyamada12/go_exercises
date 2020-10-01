@@ -10,10 +10,20 @@ import (
 )
 
 func main() {
+	counts, invalid := charCount(os.Stdin)
+	fmt.Printf("kind of rune\tcount\n")
+	for c, n := range counts {
+		fmt.Printf("%q\t%d\n", c, n)
+	}
+	if invalid > 0 {
+		fmt.Printf("\n%d invalid UTF-8 characters\n", invalid)
+	}
+}
+
+func charCount(input io.Reader) (map[string]int, int) {
 	counts := make(map[string]int) // counts of Unicode characters
 	invalid := 0                   // count of invalid UTF-8 characters
-
-	in := bufio.NewReader(os.Stdin)
+	in := bufio.NewReader(input)
 	for {
 		r, n, err := in.ReadRune() // returns rune, nbytes, error
 		if err == io.EOF {
@@ -28,7 +38,7 @@ func main() {
 			continue
 		}
 		if unicode.Is(unicode.L, r) {
-			counts["Letter"]++
+			counts["letter"]++
 		} else if unicode.Is(unicode.M, r) {
 			counts["mark"]++
 		} else if unicode.Is(unicode.N, r) {
@@ -44,14 +54,6 @@ func main() {
 		} else {
 			counts["other"]++
 		}
-
 	}
-	fmt.Printf("rune\tcount\n")
-	for c, n := range counts {
-		fmt.Printf("%q\t%d\n", c, n)
-	}
-
-	if invalid > 0 {
-		fmt.Printf("\n%d invalid UTF-8 characters\n", invalid)
-	}
+	return counts, invalid
 }
