@@ -43,7 +43,6 @@ func main() {
 func diffCount(d1, d2 [size]byte) byte {
 	c := byte(0)
 	for i := 0; i < size; i++ {
-		println(d1[i], d2[i])
 		c += pc[d1[i]^d2[i]]
 	}
 	return c
