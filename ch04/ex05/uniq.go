@@ -7,6 +7,9 @@ func main() {
 }
 
 func uniq(s []string) []string {
+	if len(s) == 0 {
+		return s
+	}
 	i := 0
 	for _, str := range s {
 		if s[i] != str {
