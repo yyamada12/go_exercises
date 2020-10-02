@@ -1,7 +1,7 @@
 package main
 
 import (
-	"reflect"
+	"bytes"
 	"testing"
 )
 
@@ -18,7 +18,7 @@ func Test_reverseString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reverseString(tt.arg)
-			if !reflect.DeepEqual(tt.arg, tt.want) {
+			if !bytes.Equal(tt.arg, tt.want) {
 				t.Errorf("got %q, want %q", tt.arg, tt.want)
 			}
 		})
