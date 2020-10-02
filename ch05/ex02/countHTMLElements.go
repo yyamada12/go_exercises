@@ -11,7 +11,7 @@ import (
 func main() {
 	doc, err := html.Parse(os.Stdin)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "findlinks: %v\n", err)
+		fmt.Fprintf(os.Stderr, "countHTMLElements: %v\n", err)
 		os.Exit(1)
 	}
 	for element, count := range visit(map[string]int{}, doc) {
