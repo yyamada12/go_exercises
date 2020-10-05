@@ -4,6 +4,7 @@ package main
 import (
 	"log"
 	"os"
+	"reflect"
 	"sort"
 	"testing"
 
@@ -30,10 +31,7 @@ func Test_visit(t *testing.T) {
 
 	sort.Strings(got)
 	sort.Strings(want)
-	for i, g := range got {
-		if g != want[i] {
-			t.Errorf("got %v, want %v", g, want[i])
-		}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
 	}
-
 }
