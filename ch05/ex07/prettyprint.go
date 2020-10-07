@@ -107,7 +107,7 @@ func handleTextNode(n *html.Node) {
 			text = html.EscapeString(text)
 		}
 		if text != "" {
-			fmt.Fprintf(out, "%*s%s\n", (depth+1)*2, "", text)
+			fmt.Fprintf(out, "%*s%s\n", depth*2, "", text)
 		}
 	}
 }
