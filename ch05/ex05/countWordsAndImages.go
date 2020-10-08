@@ -38,11 +38,6 @@ func CountWordsAndImages(url string) (words, images int, err error) {
 }
 
 func countWordsAndImages(n *html.Node) (words, images int) {
-	return visit(words, images, n)
-}
-
-func visit(words, images int, n *html.Node) (int, int) {
-
 	if n.Type == html.ElementNode && n.Data == "img" {
 		images++
 	}
@@ -65,11 +60,15 @@ func visit(words, images int, n *html.Node) (int, int) {
 	// skip if n is script or style tag
 	if !(n.Type == html.ElementNode) || (n.Data != "script" && n.Data != "style") {
 		if c := n.FirstChild; c != nil {
-			words, images = visit(words, images, c)
+			w, i := countWordsAndImages(c)
+			words += w
+			images += i
 		}
 	}
 	if c := n.NextSibling; c != nil {
-		words, images = visit(words, images, c)
+		w, i := countWordsAndImages(c)
+		words += w
+		images += i
 	}
 	return words, images
 }

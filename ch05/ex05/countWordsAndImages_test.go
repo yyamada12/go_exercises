@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func Test_visit(t *testing.T) {
+func Test_countWordsAndImages(t *testing.T) {
 	// setup
 	fp, err := os.Open("sample.html")
 	if err != nil {
