@@ -28,9 +28,11 @@ var prereqs = map[string][]string{
 
 func main() {
 	for course := range prereqs {
-		allreqs := breadthFirst(func(item string) []string {
+		var allreqs []string
+		breadthFirst(func(item string) []string {
+			allreqs = append(allreqs, item)
 			return prereqs[item]
-		}, []string{course})
+		}, prereqs[course])
 		fmt.Printf("%s\t:%q\n", course, allreqs)
 	}
 }
@@ -38,8 +40,7 @@ func main() {
 // breadthFirst calls f for each item in the worklist.
 // Any items returned by f are added to the worklist.
 // f is called at most once for each item.
-func breadthFirst(f func(item string) []string, worklist []string) []string {
-	reqs := []string{}
+func breadthFirst(f func(item string) []string, worklist []string) {
 	seen := make(map[string]bool)
 	for len(worklist) > 0 {
 		items := worklist
@@ -47,10 +48,8 @@ func breadthFirst(f func(item string) []string, worklist []string) []string {
 		for _, item := range items {
 			if !seen[item] {
 				seen[item] = true
-				reqs = append(reqs, item)
 				worklist = append(worklist, f(item)...)
 			}
 		}
 	}
-	return reqs
 }
