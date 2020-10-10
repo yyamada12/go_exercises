@@ -40,7 +40,7 @@ func topoSort(m map[string][]string) []string {
 		for item := range items {
 			if !seen[item] {
 				seen[item] = true
-				deps := map[string]bool{}
+				deps := make(map[string]bool)
 				for _, dep := range m[item] {
 					deps[dep] = true
 				}
@@ -50,7 +50,7 @@ func topoSort(m map[string][]string) []string {
 		}
 	}
 
-	keys := map[string]bool{}
+	keys := make(map[string]bool)
 	for key := range m {
 		keys[key] = true
 	}
