@@ -36,12 +36,7 @@ func breadthFirst(f func(item string) []string, worklist []string) {
 	}
 
 	seen := make(map[string]bool)
-	i := 0
 	for len(worklist) > 0 {
-		i++
-		if i > 10 {
-			break
-		}
 		items := worklist
 		worklist = nil
 		for _, item := range items {
@@ -53,39 +48,18 @@ func breadthFirst(f func(item string) []string, worklist []string) {
 	}
 }
 
-func crawl(u string) []string {
-	fmt.Println(u)
+func crawl(url string) []string {
+	fmt.Println(url)
+
+	// Download page
+	if err := download(url); err != nil {
+		log.Print(err)
+	}
 
 	// Extract link
-	list, err := links.Extract(u)
+	list, err := links.Extract(url)
 	if err != nil {
 		log.Print(err)
-	}
-
-	// get hostname from u
-	uu, err := url.Parse(u)
-	if err != nil {
-		log.Print(err)
-		return list
-	}
-	hostname := uu.Hostname()
-	urlpath := uu.Path
-	if urlpath == "" {
-		urlpath = "/index.html"
-	} else if strings.HasSuffix(urlpath, "/") {
-		urlpath += "index.html"
-	} else if !strings.Contains(path.Base(urlpath), ".") {
-		urlpath += "/index.html"
-	}
-
-	if contains(targetHostnames, hostname) {
-		if err := os.MkdirAll(path.Dir(hostname+urlpath), 0755); err != nil {
-			log.Print(err)
-			return list
-		}
-		if err := fetch(hostname+urlpath, u); err != nil {
-			log.Print(err)
-		}
 	}
 
 	return list
@@ -100,21 +74,58 @@ func contains(list []string, target string) bool {
 	return false
 }
 
-func fetch(fileName, u string) error {
-	resp, err := http.Get(u)
+func download(url string) error {
+	hostname, urlpath, err := parseURL(url)
 	if err != nil {
 		return err
+	}
+
+	// download target host only
+	if !contains(targetHostnames, hostname) {
+		return nil
+	}
+
+	// fetch data
+	data, err := fetch(url)
+	if err != nil {
+		return err
+	}
+
+	// save data
+	filepath := hostname + urlpath
+	err = os.MkdirAll(path.Dir(filepath), 0755)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(filepath, data, 0644)
+	return err
+}
+
+func fetch(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error get %s: %s", u, resp.Status)
+		return nil, fmt.Errorf("error get %s: %s", url, resp.Status)
 	}
 
-	data, err := ioutil.ReadAll(resp.Body)
+	return ioutil.ReadAll(resp.Body)
+}
+
+func parseURL(u string) (string, string, error) {
+	uu, err := url.Parse(u)
 	if err != nil {
-		return err
+		return "", "", err
 	}
-	err = ioutil.WriteFile(fileName, data, 0644)
-	return err
+	hostname := uu.Hostname()
+	urlpath := uu.Path
+	if strings.HasSuffix(urlpath, "/") {
+		urlpath += "index.html"
+	} else if urlpath == "" || !strings.Contains(path.Base(urlpath), ".") {
+		urlpath += "/index.html"
+	}
+	return hostname, urlpath, nil
 }
