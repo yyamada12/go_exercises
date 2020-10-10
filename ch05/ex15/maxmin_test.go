@@ -18,7 +18,7 @@ func Test_max1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := max1(tt.nums...); got != tt.want {
-				t.Errorf("max1(...%d) = %v, want %v", tt.nums, got, tt.want)
+				t.Errorf("max1(%d...) = %v, want %v", tt.nums, got, tt.want)
 			}
 		})
 	}
@@ -39,7 +39,7 @@ func Test_max2(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := max2(tt.n, tt.nums...); got != tt.want {
-				t.Errorf("max1(%d, ...%d) = %v, want %v", tt.n, tt.nums, got, tt.want)
+				t.Errorf("max1(%d, %d...) = %v, want %v", tt.n, tt.nums, got, tt.want)
 			}
 		})
 	}
@@ -59,7 +59,7 @@ func Test_min1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := min1(tt.nums...); got != tt.want {
-				t.Errorf("min1(...%d) = %v, want %v", tt.nums, got, tt.want)
+				t.Errorf("min1(%d...) = %v, want %v", tt.nums, got, tt.want)
 			}
 		})
 	}
@@ -80,7 +80,7 @@ func Test_min2(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := min2(tt.n, tt.nums...); got != tt.want {
-				t.Errorf("max1(%d, ...%d) = %v, want %v", tt.n, tt.nums, got, tt.want)
+				t.Errorf("max1(%d, %d...) = %v, want %v", tt.n, tt.nums, got, tt.want)
 			}
 		})
 	}
