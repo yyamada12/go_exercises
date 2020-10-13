@@ -172,7 +172,7 @@ func TestIntSet_Copy(t *testing.T) {
 
 		// assert
 		if y.Len() != 2 {
-			t.Errorf("y.Len() got %d, want %d", y.Len(), 2)
+			t.Errorf("y.Len() got %d, want 2", y.Len())
 		}
 		if !y.Has(1) {
 			t.Errorf("y.Has(1) is false, y: %s", y.String())
@@ -196,7 +196,7 @@ func TestIntSet_Copy(t *testing.T) {
 
 		// assert
 		if y.Len() != 0 {
-			t.Errorf("y.Len() got %d, want %d", y.Len(), 0)
+			t.Errorf("y.Len() got %d, want 0", y.Len())
 		}
 		if y.Has(4) {
 			t.Errorf("y.Has(4) is true, y: %s", y.String())
