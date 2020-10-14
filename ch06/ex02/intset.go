@@ -29,6 +29,13 @@ func (s *IntSet) Add(x int) {
 	s.words[word] |= 1 << bit
 }
 
+// AddAll adds the non-negative values xs to the set
+func (s *IntSet) AddAll(xs ...int) {
+	for _, x := range xs {
+		s.Add(x)
+	}
+}
+
 // UnionWith sets s to the union of s and t.
 func (s *IntSet) UnionWith(t *IntSet) {
 	for i, tword := range t.words {
@@ -91,11 +98,4 @@ func (s *IntSet) Copy() *IntSet {
 	res := &IntSet{make([]uint64, len(s.words))}
 	copy(res.words, s.words)
 	return res
-}
-
-// AddAll adds the non-negative values xs to the set
-func (s *IntSet) AddAll(xs ...int) {
-	for _, x := range xs {
-		s.Add(x)
-	}
 }
