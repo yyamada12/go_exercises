@@ -55,7 +55,7 @@ func TestIntSet_Len(t *testing.T) {
 		{"no elems", []int{}, 0},
 		{"one elems", []int{1}, 1},
 		{"two elems", []int{1, 2}, 2},
-		{"three elems", []int{1, 64, 128}, 3},
+		{"dup elems", []int{1, 64, 64}, 2},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
