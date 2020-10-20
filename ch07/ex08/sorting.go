@@ -55,17 +55,27 @@ func printTracks(tracks []*Track) {
 }
 
 func main() {
-	x := conditionMemorySort{tracks, func(x, y *Track) bool { return false }, nil}
-	fmt.Println("byTitle:")
-	x = addSortCondition(x, byTitle)
-	sort.Sort(x)
-	printTracks(tracks)
+	var x conditionMemorySort
+
 	fmt.Println("\nbyYear:")
-	x = addSortCondition(x, byYear)
+	x = addSortCondition(x, byYear, true)
 	sort.Sort(x)
 	printTracks(tracks)
 
+	fmt.Println("byTitle:")
+	x = addSortCondition(x, byTitle, false)
+	sort.Sort(x)
+	printTracks(tracks)
 }
+
+type customSort struct {
+	t    []*Track
+	less func(x, y *Track) bool
+}
+
+func (x customSort) Len() int           { return len(x.t) }
+func (x customSort) Less(i, j int) bool { return x.less(x.t[i], x.t[j]) }
+func (x customSort) Swap(i, j int)      { x.t[i], x.t[j] = x.t[j], x.t[i] }
 
 func lessByTitle(x, y *Track) bool {
 	return x.Title < y.Title
@@ -87,34 +97,48 @@ func lessByLength(x, y *Track) bool {
 	return x.Length < y.Length
 }
 
-func addSortCondition(prev conditionMemorySort, s sortCondition) conditionMemorySort {
+func addSortCondition(x conditionMemorySort, s sortCondition, reverse bool) conditionMemorySort {
 	switch s {
 	case byTitle:
-		return conditionMemorySort{prev.t, lessByTitle, &prev}
+		if reverse {
+			return conditionMemorySort{sort.Reverse(customSort{tracks, lessByTitle}), &x}
+		}
+		return conditionMemorySort{customSort{tracks, lessByTitle}, &x}
 	case byArtist:
-		return conditionMemorySort{prev.t, lessByArtist, &prev}
+		if reverse {
+			return conditionMemorySort{sort.Reverse(customSort{tracks, lessByArtist}), &x}
+		}
+		return conditionMemorySort{customSort{tracks, lessByArtist}, &x}
 	case byAlbum:
-		return conditionMemorySort{prev.t, lessByAlbum, &prev}
+		if reverse {
+			return conditionMemorySort{sort.Reverse(customSort{tracks, lessByAlbum}), &x}
+		}
+		return conditionMemorySort{customSort{tracks, lessByAlbum}, &x}
 	case byYear:
-		return conditionMemorySort{prev.t, lessByYear, &prev}
+		if reverse {
+			return conditionMemorySort{sort.Reverse(customSort{tracks, lessByYear}), &x}
+		}
+		return conditionMemorySort{customSort{tracks, lessByYear}, &x}
 	case byLength:
-		return conditionMemorySort{prev.t, lessByLength, &prev}
+		if reverse {
+			return conditionMemorySort{sort.Reverse(customSort{tracks, lessByLength}), &x}
+		}
+		return conditionMemorySort{customSort{tracks, lessByLength}, &x}
 	default:
-		return prev
+		return x
 	}
 }
 
 type conditionMemorySort struct {
-	t    []*Track
-	less func(x, y *Track) bool
-	prev *conditionMemorySort
+	crt sort.Interface
+	prv *conditionMemorySort
 }
 
-func (x conditionMemorySort) Len() int      { return len(x.t) }
-func (x conditionMemorySort) Swap(i, j int) { x.t[i], x.t[j] = x.t[j], x.t[i] }
+func (x conditionMemorySort) Len() int      { return x.crt.Len() }
+func (x conditionMemorySort) Swap(i, j int) { x.crt.Swap(i, j) }
 func (x conditionMemorySort) Less(i, j int) bool {
-	if !x.less(x.t[i], x.t[j]) && !x.less(x.t[j], x.t[i]) && x.prev != nil {
-		return x.prev.Less(i, j)
+	if !x.crt.Less(i, j) && !x.crt.Less(j, i) && x.prv.crt != nil {
+		return (*x.prv).Less(i, j)
 	}
-	return x.less(x.t[i], x.t[j])
+	return x.crt.Less(i, j)
 }
