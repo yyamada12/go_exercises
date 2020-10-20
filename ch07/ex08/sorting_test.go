@@ -84,7 +84,7 @@ func randString(n int) string {
 
 func createTracks(n int) []*Track {
 	tracks := make([]*Track, n)
-	for i, _ := range tracks {
+	for i := range tracks {
 		tracks[i] = &Track{randString(5), randString(5), randString(5), rand.Int() % 3000, length(fmt.Sprintf("%dm%ds", rand.Int()%60, rand.Int()%60))}
 	}
 	return tracks
