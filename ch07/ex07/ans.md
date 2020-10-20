@@ -4,6 +4,14 @@
 flag.go のコードより、 `flag.CommandLine.Var` の呼び出し時に Flag 構造体の defValue フィールドに `value.String()` が格納されていることがわかる。
 
 ```
+// A Flag represents the state of a flag.
+type Flag struct {
+	Name     string // name as it appears on command line
+	Usage    string // help message
+	Value    Value  // value as set
+	DefValue string // default value (as text); for usage message
+}
+
 // Var defines a flag with the specified name and usage string. The type and
 // value of the flag are represented by the first argument, of type Value, which
 // typically holds a user-defined implementation of Value. For instance, the
