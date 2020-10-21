@@ -1,0 +1,13 @@
+<h1>Items</h1>
+<table>
+  <tr style="text-align: left">
+    <th>Item</th>
+    <th>Price</th>
+  </tr>
+  {{range .}}
+  <tr>
+    <td>{{.Item}}</td>
+    <td>{{.Price}}</td>
+  </tr>
+  {{end}}
+</table>
