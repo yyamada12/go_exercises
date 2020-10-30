@@ -15,8 +15,10 @@ func main() {
 	}
 	arg := string(doc)
 
-	// execute
-	Parse(arg)
+	_, err = Parse(arg)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func Parse(s string) (*html.Node, error) {
@@ -35,12 +37,10 @@ type stringReader struct {
 }
 
 func (s *stringReader) Read(p []byte) (n int, err error) {
-	println(len(p), len(s.b))
-	n = min(len(p), len(s.b))
-	if n == 0 {
+	if len(s.b) == 0 {
 		return 0, io.EOF
 	}
-	copy(p, s.b[:n])
+	n = copy(p, s.b)
 	s.b = s.b[n:]
 	return n, nil
 }
