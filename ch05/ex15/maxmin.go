@@ -18,7 +18,7 @@ func max1(nums ...int) int {
 		return 0
 	}
 	res := nums[0]
-	for _, num := range nums {
+	for _, num := range nums[1:] {
 		res = max(res, num)
 	}
 	return res
@@ -45,7 +45,7 @@ func min1(nums ...int) int {
 		return 0
 	}
 	res := nums[0]
-	for _, num := range nums {
+	for _, num := range nums[1:] {
 		res = min(res, num)
 	}
 	return res
