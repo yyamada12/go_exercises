@@ -16,7 +16,6 @@ func main() {
 		os.Exit(1)
 	}
 	for _, link := range visit(nil, doc) {
-		_ = len(link)
 		fmt.Println(link)
 	}
 }
