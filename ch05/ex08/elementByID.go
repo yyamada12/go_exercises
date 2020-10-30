@@ -39,7 +39,7 @@ func main() {
 
 // ElementByID finds element from HTML document by id
 func ElementByID(doc *html.Node, id string) *html.Node {
-	return forEachNode(doc, findElementByIDFunc(id), doNothing)
+	return forEachNode(doc, findElementByIDFunc(id), nil)
 }
 
 func forEachNode(n *html.Node, pre, post func(n *html.Node) bool) *html.Node {
@@ -78,8 +78,4 @@ func findElementByIDFunc(id string) func(n *html.Node) bool {
 		}
 		return false
 	}
-}
-
-func doNothing(n *html.Node) bool {
-	return false
 }
