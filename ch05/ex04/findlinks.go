@@ -80,8 +80,8 @@ func visit(linkMap map[string][]string, n *html.Node) map[string][]string {
 	if c := n.FirstChild; c != nil {
 		linkMap = visit(linkMap, c)
 	}
-	if c := n.NextSibling; c != nil {
-		linkMap = visit(linkMap, c)
+	if next := n.NextSibling; next != nil {
+		linkMap = visit(linkMap, next)
 	}
 	return linkMap
 }
