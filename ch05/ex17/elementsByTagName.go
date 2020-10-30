@@ -21,6 +21,7 @@ func main() {
 	images := ElementsByTagName(doc, "img")
 	fmt.Println("<images>")
 	for _, image := range images {
+		fmt.Println(image.Data)
 		for _, a := range image.Attr {
 			fmt.Println(a.Key, a.Val)
 		}
@@ -30,6 +31,7 @@ func main() {
 	headings := ElementsByTagName(doc, "h1", "h2", "h3", "h4")
 	fmt.Println("<headings>")
 	for _, heading := range headings {
+		fmt.Println(heading.Data)
 		for _, a := range heading.Attr {
 			fmt.Println(a.Key, a.Val)
 		}
@@ -37,6 +39,7 @@ func main() {
 	}
 }
 
+// ElementsByTagName returns html nodes contains one of specified names
 func ElementsByTagName(doc *html.Node, name ...string) []*html.Node {
 	names = name
 	return visit(nil, doc)
