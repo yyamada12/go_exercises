@@ -99,7 +99,7 @@ func saveAllComics(number int) error {
 	}
 	fileName := fmt.Sprintf(indexFileDir+"/"+indexFileName, number)
 	err = ioutil.WriteFile(fileName, data, 0644)
-	println(fileName + " created!")
+	log.Println(fileName + " created!")
 	return err
 }
 
