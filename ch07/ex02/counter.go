@@ -13,7 +13,7 @@ func main() {
 	fmt.Println(*x)
 }
 
-// CountingWriter returns Writer wrapping given Writer for counting and address of
+// CountingWriter returns Writer wrapping given Writer for counting and address of the count
 func CountingWriter(w io.Writer) (io.Writer, *int64) {
 	var x countingWriter
 	x.origin = w
@@ -26,6 +26,7 @@ type countingWriter struct {
 }
 
 func (w *countingWriter) Write(p []byte) (int, error) {
-	w.count += int64(len(p))
-	return w.origin.Write(p)
+	n, err := w.origin.Write(p)
+	w.count += int64(n)
+	return n, err
 }
