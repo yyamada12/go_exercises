@@ -23,7 +23,6 @@ type LineCounter int
 
 func (c *LineCounter) Write(p []byte) (int, error) {
 	in := bufio.NewScanner(bytes.NewReader(p))
-	in.Split(bufio.ScanLines)
 	for in.Scan() {
 		*c += LineCounter(1)
 	}
