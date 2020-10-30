@@ -97,11 +97,11 @@ func handleQueryStrings(qs url.Values) duplexFuncOpts {
 
 func duplexFuncPlotter(out io.Writer, opts duplexFuncOpts) {
 	opts.validateValues()
-	println("width: ", opts.width)
-	println("height: ", opts.height)
-	println("xyrange: ", opts.xyrange)
-	println("zscalecoef: ", opts.zscalecoef)
-	println("color: ", opts.color)
+	log.Println("width: ", opts.width)
+	log.Println("height: ", opts.height)
+	log.Println("xyrange: ", opts.xyrange)
+	log.Println("zscalecoef: ", opts.zscalecoef)
+	log.Println("color: ", opts.color)
 
 	fmt.Fprintf(out, "<svg xmlns='http://www.w3.org/2000/svg' "+
 		"style='stroke: grey; fill: white; stroke-width: 0.7' "+
