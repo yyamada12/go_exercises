@@ -13,7 +13,7 @@ func (c *WordCounter) Write(p []byte) (int, error) {
 	in := bufio.NewScanner(bytes.NewReader(p))
 	in.Split(bufio.ScanWords)
 	for in.Scan() {
-		*c += WordCounter(1)
+		*c++
 	}
 	return len(p), nil
 }
@@ -24,7 +24,7 @@ type LineCounter int
 func (c *LineCounter) Write(p []byte) (int, error) {
 	in := bufio.NewScanner(bytes.NewReader(p))
 	for in.Scan() {
-		*c += LineCounter(1)
+		*c++
 	}
 	return len(p), nil
 }
