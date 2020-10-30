@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
 
 func main() {
-	println(expand("$echo", echo))
+	fmt.Println(expand("$echo", echo))
 }
 
 func expand(s string, f func(string) string) string {
