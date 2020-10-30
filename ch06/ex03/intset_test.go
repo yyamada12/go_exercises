@@ -9,7 +9,8 @@ func TestIntSet_IntersectWith(t *testing.T) {
 		yAdds []int
 		want  []int
 	}{
-		{"1 same element", []int{1, 2, 3}, []int{2, 4, 6}, []int{2}},
+		{"1 same element, len(s) < len(t)", []int{1, 2, 3}, []int{2, 4, 64}, []int{2}},
+		{"1 same element, len(s) > len(t)", []int{1, 2, 65}, []int{2, 4, 6}, []int{2}},
 		{"no smage elements", []int{1, 2, 3}, []int{4, 5, 6}, []int{}},
 	}
 	for _, tt := range tests {
