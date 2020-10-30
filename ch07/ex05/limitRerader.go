@@ -19,22 +19,22 @@ func main() {
 
 // LimitReader returns a io.Reader that return EOF after read n bytes
 func LimitReader(r io.Reader, n int64) io.Reader {
-	return &limitReader{n, r}
+	return &limitReader{r, n}
 }
 
 type limitReader struct {
-	n      int64
 	origin io.Reader
+	n      int64
 }
 
-func (w *limitReader) Read(p []byte) (int, error) {
-	if w.n == 0 {
+func (r *limitReader) Read(p []byte) (int, error) {
+	if r.n == 0 {
 		return 0, io.EOF
 	}
-	if int64(len(p)) > w.n {
-		p = p[0:w.n]
+	if int64(len(p)) > r.n {
+		p = p[0:r.n]
 	}
-	n, err := w.origin.Read(p)
-	w.n -= int64(n)
+	n, err := r.origin.Read(p)
+	r.n -= int64(n)
 	return n, err
 }
