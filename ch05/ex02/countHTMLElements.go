@@ -27,8 +27,8 @@ func visit(elementCounts map[string]int, n *html.Node) map[string]int {
 	if c := n.FirstChild; c != nil {
 		elementCounts = visit(elementCounts, c)
 	}
-	if c := n.NextSibling; c != nil {
-		elementCounts = visit(elementCounts, c)
+	if next := n.NextSibling; next != nil {
+		elementCounts = visit(elementCounts, next)
 	}
 	return elementCounts
 }
