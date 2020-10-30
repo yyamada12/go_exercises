@@ -54,6 +54,9 @@ func (s *IntSet) IntersectWith(t *IntSet) {
 			s.words[i] &= tword
 		}
 	}
+	if len(t.words) < len(s.words) {
+		s.words = s.words[:len(t.words)]
+	}
 }
 
 // DifferenceWith sets s to the intersect of s and t.
