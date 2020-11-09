@@ -23,15 +23,12 @@ func handleConn(c net.Conn) {
 	input := bufio.NewScanner(c)
 	var wg sync.WaitGroup
 
-	timeout := make(chan struct{})
 	text := make(chan string)
 	go func(input *bufio.Scanner, text chan string) {
 		for input.Scan() {
 			text <- input.Text()
 		}
 	}(input, text)
-	var n int // timeout count
-	go tenSeconds(timeout)
 loop:
 	for {
 		select {
@@ -41,25 +38,15 @@ loop:
 				defer wg.Done()
 				echo(c, shout, 1*time.Second)
 			}(c, t)
-			n++ // count up timeout count
-			go tenSeconds(timeout)
-		case <-timeout:
-			if n == 0 {
-				fmt.Println("timed out")
-				break loop
-			}
-			n-- // count down timeout count
+		case <-time.After(10 * time.Second):
+			fmt.Println("timed out")
+			break loop
 		}
 	}
 
 	wg.Wait()
 	// NOTE: ignoring potential errors from input.Err()
 	c.Close()
-}
-
-func tenSeconds(timeout chan struct{}) {
-	time.Sleep(10 * time.Second)
-	timeout <- struct{}{}
 }
 
 func main() {
