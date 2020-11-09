@@ -44,7 +44,7 @@ func broadcaster() {
 
 func enteringMessage(clients map[client]bool) string {
 	if len(clients) == 0 {
-		return "Welcome, you are the first client."
+		return "Welcome, you are the first client"
 	}
 	var res strings.Builder
 	res.WriteString("Welcome, ")
@@ -57,7 +57,7 @@ func enteringMessage(clients map[client]bool) string {
 	} else {
 		res.WriteString("are ")
 	}
-	res.WriteString("here.")
+	res.WriteString("here")
 	return res.String()
 }
 
