@@ -14,8 +14,15 @@ type result struct {
 }
 
 type entry struct {
-	res   result
-	ready chan struct{} // closed when res is ready
+	res      result
+	ready    chan struct{} // closed when res is ready
+	handover chan callReqs // used when Get canceled
+}
+
+type callReqs struct {
+	f     Func
+	key   string
+	cache map[string]*entry
 }
 
 // A request is a message requesting that the Func be applied to key.
@@ -53,15 +60,15 @@ func (memo *Memo) server(f Func) {
 		e := cache[req.key]
 		if e == nil {
 			// This is the first request for this key.
-			e = &entry{ready: make(chan struct{})}
+			e = &entry{ready: make(chan struct{}), handover: make(chan callReqs)}
 			cache[req.key] = e
-			go e.call(f, req.key, req.done) // call f(key)
+			go e.call(f, req.key, req.done, cache) // call f(key)
 		}
 		go e.deliver(req.response, req.done)
 	}
 }
 
-func (e *entry) call(f Func, key string, done <-chan struct{}) {
+func (e *entry) call(f Func, key string, done <-chan struct{}, cache map[string]*entry) {
 	ch := make(chan struct{})
 	// Evaluate the function.
 	go func() {
@@ -73,7 +80,12 @@ func (e *entry) call(f Func, key string, done <-chan struct{}) {
 	case <-ch:
 		close(e.ready)
 	case <-done:
-		e = nil
+		select {
+		case e.handover <- callReqs{f, key, cache}:
+			// hand over calling Func to another Get
+		default:
+			delete(cache, key)
+		}
 	}
 }
 
@@ -83,6 +95,9 @@ func (e *entry) deliver(response chan<- result, done <-chan struct{}) {
 	case <-e.ready:
 		// Send the result to the client.
 		response <- e.res
+	case callreqs := <-e.handover:
+		go e.call(callreqs.f, callreqs.key, done, callreqs.cache)
+		go e.deliver(response, done)
 	case <-done:
 		//do nothing
 	}

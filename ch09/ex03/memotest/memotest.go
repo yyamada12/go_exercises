@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func httpGetBody(url string) (interface{}, error) {
+func httpGetBody(url string, done <-chan struct{}) (interface{}, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -23,20 +23,25 @@ func httpGetBody(url string) (interface{}, error) {
 
 var HTTPGetBody = httpGetBody
 
-func incomingURLs() <-chan string {
-	ch := make(chan string)
+type test struct {
+	url  string
+	done bool
+}
+
+func incomingURLs() <-chan test {
+	ch := make(chan test)
 	go func() {
-		for _, url := range []string{
-			"https://golang.org",
-			"https://godoc.org",
-			"https://play.golang.org",
-			"http://gopl.io",
-			"https://golang.org",
-			"https://godoc.org",
-			"https://play.golang.org",
-			"http://gopl.io",
+		for _, t := range []test{
+			{"https://golang.org", false},
+			{"https://godoc.org", true},
+			{"https://play.golang.org", false},
+			{"http://gopl.io", false},
+			{"https://golang.org", false},
+			{"https://godoc.org", false},
+			{"https://play.golang.org", false},
+			{"http://gopl.io", false},
 		} {
-			ch <- url
+			ch <- t
 		}
 		close(ch)
 	}()
@@ -44,37 +49,72 @@ func incomingURLs() <-chan string {
 }
 
 type M interface {
-	Get(key string) (interface{}, error)
+	Get(key string, done <-chan struct{}) (interface{}, error)
+}
+
+type result struct {
+	value interface{}
+	err   error
 }
 
 func Sequential(t *testing.T, m M) {
-	for url := range incomingURLs() {
+	for t := range incomingURLs() {
+		done := make(chan struct{})
+		res := make(chan result)
 		start := time.Now()
-		value, err := m.Get(url)
-		if err != nil {
-			log.Print(err)
+		go func(url string) {
+			value, err := m.Get(url, done)
+			res <- result{value, err}
+		}(t.url)
+		if t.done {
+			time.Sleep(150 * time.Microsecond)
+			close(done)
+		}
+		r := <-res
+		if r.err != nil {
+			log.Print(r.err)
 			continue
 		}
-		fmt.Printf("%s, %s, %d bytes\n",
-			url, time.Since(start), len(value.([]byte)))
+		if r.value != nil {
+			fmt.Printf("%s, %s, %d bytes\n",
+				t.url, time.Since(start), len(r.value.([]byte)))
+		} else {
+			fmt.Printf("%s, %s, canceled\n",
+				t.url, time.Since(start))
+		}
 	}
 }
 
 func Concurrent(t *testing.T, m M) {
 	var n sync.WaitGroup
-	for url := range incomingURLs() {
+	for t := range incomingURLs() {
 		n.Add(1)
-		go func(url string) {
+		go func(t test) {
 			defer n.Done()
+			done := make(chan struct{})
+			res := make(chan result)
 			start := time.Now()
-			value, err := m.Get(url)
-			if err != nil {
-				log.Print(err)
+			go func() {
+				value, err := m.Get(t.url, done)
+				res <- result{value, err}
+			}()
+			if t.done {
+				time.Sleep(150 * time.Microsecond)
+				close(done)
+			}
+			r := <-res
+			if r.err != nil {
+				log.Print(r.err)
 				return
 			}
-			fmt.Printf("%s, %s, %d bytes\n",
-				url, time.Since(start), len(value.([]byte)))
-		}(url)
+			if r.value != nil {
+				fmt.Printf("%s, %s, %d bytes\n",
+					t.url, time.Since(start), len(r.value.([]byte)))
+			} else {
+				fmt.Printf("%s, %s, canceled\n",
+					t.url, time.Since(start))
+			}
+		}(t)
 	}
 	n.Wait()
 }
