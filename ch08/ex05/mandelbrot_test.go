@@ -101,7 +101,7 @@ func Benchmark_WithWidthHeightGoRoutine(b *testing.B) {
 }
 
 func withCountingSemaphore(b *testing.B, n int) {
-	tokens = make(chan struct{}, n)
+	tokens := make(chan struct{}, n)
 	for i := 0; i < b.N; i++ {
 		img := image.NewRGBA(image.Rect(0, 0, width, height))
 		var wg sync.WaitGroup
