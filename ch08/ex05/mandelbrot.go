@@ -7,6 +7,7 @@ import (
 	"image/png"
 	"math/cmplx"
 	"os"
+	"sync"
 )
 
 func main() {
@@ -16,25 +17,21 @@ func main() {
 	)
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-
-	ch := make(chan struct{})
-
+	var wg sync.WaitGroup
 	for py := 0; py < height; py++ {
-		y := float64(py)/height*(ymax-ymin) + ymin
-		for px := 0; px < width; px++ {
-			x := float64(px)/width*(xmax-xmin) + xmin
-			z := complex(x, y)
-			// Image point (px, py) represents complex value z.
-
-			go func(px, py int, z complex128) {
+		wg.Add(1)
+		go func(py int) {
+			defer wg.Done()
+			y := float64(py)/height*(ymax-ymin) + ymin
+			for px := 0; px < width; px++ {
+				x := float64(px)/width*(xmax-xmin) + xmin
+				z := complex(x, y)
+				// Image point (px, py) represents complex value z.
 				img.Set(px, py, mandelbrot(z))
-				ch <- struct{}{}
-			}(px, py, z)
-		}
+			}
+		}(py)
 	}
-	for i := 0; i < width*height; i++ {
-		<-ch
-	}
+	wg.Wait()
 	png.Encode(os.Stdout, img) // NOTE: ignoring errors
 }
 
