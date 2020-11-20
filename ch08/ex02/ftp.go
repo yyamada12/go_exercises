@@ -26,9 +26,10 @@ func main() {
 }
 
 type status struct {
-	user      string
-	addr      string // default: client addr, in passive mode: server addr
-	isPassive bool
+	user       string
+	addr       string // default: client addr, in passive mode: server addr
+	isPassive  bool
+	isLoggedIn bool
 }
 
 func handleConn(c net.Conn) {
@@ -67,6 +68,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		st.user = cmd.arg
+		st.isLoggedIn = true
 		fmt.Fprintln(c, "230 OK. Current directory is /")
 	}
 }
