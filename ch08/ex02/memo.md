@@ -8,6 +8,18 @@
 - @IT インターネット・プロトコル詳説
   https://www.atmarkit.co.jp/ait/articles/0107/17/news002.html
 
+## TODO
+
+- [x] USER
+- [ ] PORT
+- [ ] TYPE
+- [ ] MODE
+- [ ] STRU
+- [ ] RETR
+- [ ] STOR
+- [ ] NOOP
+- [ ] QUIT
+
 ## 最小の実装
 
 型 - ASCII Non-print
@@ -50,6 +62,12 @@ QUIT <CRLF>
 PORT <SP> <ホスト-ポート> <CRLF>
 200: OK
 500, 501, 421, 530
+
+200 PORT command successful
+501 Syntax error in IP address
+530 You aren't logged in
+501 Active mode is disabled
+501 Sorry, but I won't connect to ports < 1024
 
 ### TYPE
 

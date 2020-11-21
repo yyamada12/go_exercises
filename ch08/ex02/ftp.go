@@ -70,5 +70,34 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		st.user = cmd.arg
 		st.isLoggedIn = true
 		fmt.Fprintln(c, "230 OK. Current directory is /")
+	case "PORT":
+		if !st.isLoggedIn {
+			fmt.Fprintln(c, "530 You aren't logged in")
+			return
+		}
+		if st.isPassive {
+			fmt.Fprintln(c, "501 Active mode is disabled")
+			return
+		}
+		addr, err := parsePort(cmd.arg)
+		if err != nil {
+			fmt.Fprintln(c, "501", err)
+			return
+		}
+		st.addr = addr
+		fmt.Fprintln(c, "200 PORT command successful")
 	}
+}
+
+func parsePort(arg string) (string, error) {
+	var h1, h2, h3, h4, p1, p2 uint
+	n, _ := fmt.Sscanf(arg, "%d,%d,%d,%d,%d,%d", &h1, &h2, &h3, &h4, &p1, &p2)
+	if n != 6 || h1 > 255 || h2 > 255 || h3 > 255 || h4 > 255 || p1 > 255 || p2 > 255 || (h1|h2|h3|h4) == 0 || (p1|p2) == 0 {
+		return "", fmt.Errorf("Syntax error in IP address")
+	}
+	p := p1<<8 | p2
+	if p < 1024 {
+		return "", fmt.Errorf("Sorry, but I won't connect to ports < 1024")
+	}
+	return fmt.Sprintf("%d.%d.%d.%d:%d", h1, h2, h3, h4, p), nil
 }
