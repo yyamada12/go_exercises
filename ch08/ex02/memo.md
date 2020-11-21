@@ -13,7 +13,7 @@
 - [x] USER
 - [x] PORT
 - [x] TYPE
-- [ ] MODE
+- [x] MODE
 - [ ] STRU
 - [ ] RETR
 - [ ] STOR

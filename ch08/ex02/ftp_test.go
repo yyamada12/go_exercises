@@ -108,3 +108,33 @@ func Test_Type(t *testing.T) {
 		})
 	}
 }
+
+func Test_Mode(t *testing.T) {
+	tests := []struct {
+		name string
+		cmd  string
+		arg  string
+		want string
+	}{
+		{"no arg", "MODE", "", "501 Missing argument"},
+		{"unknown mode", "MODE", "xx", "504 Please use S(tream) mode"},
+		{"strem mode", "MODE", "S", "200 S OK"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, client := net.Pipe()
+			go func() {
+				handleConn(server)
+				server.Close()
+			}()
+			fmt.Fprintln(client, tt.cmd, tt.arg)
+			input := bufio.NewScanner(client)
+			input.Scan()
+			got := input.Text()
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+			client.Close()
+		})
+	}
+}

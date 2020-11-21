@@ -102,6 +102,16 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		st.dtype = dtype
 		fmt.Fprintln(c, "200-TYPE command successful")
 		fmt.Fprintln(c, "200 TYPE is now", typeStringify(st.dtype))
+	case "MODE":
+		if cmd.arg == "" {
+			fmt.Fprintln(c, "501 Missing argument")
+			return
+		}
+		if strings.ToUpper(cmd.arg) != "S" {
+			fmt.Fprintln(c, "504 Please use S(tream) mode")
+			return
+		}
+		fmt.Fprintln(c, "200 S OK")
 	}
 }
 
