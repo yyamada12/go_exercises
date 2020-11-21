@@ -112,6 +112,16 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		fmt.Fprintln(c, "200 S OK")
+	case "STRU":
+		if cmd.arg == "" {
+			fmt.Fprintln(c, "501 Missing argument")
+			return
+		}
+		if strings.ToUpper(cmd.arg) != "F" {
+			fmt.Fprintln(c, "504 Only F(ile) is supported")
+			return
+		}
+		fmt.Fprintln(c, "200 F OK")
 	}
 }
 
