@@ -28,6 +28,7 @@ func main() {
 type status struct {
 	user       string
 	addr       string // default: client addr, in passive mode: server addr
+	dtype      int    // 0(default): ASCII, 1: Image
 	isPassive  bool
 	isLoggedIn bool
 }
@@ -86,6 +87,21 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		}
 		st.addr = addr
 		fmt.Fprintln(c, "200 PORT command successful")
+	case "TYPE":
+		if cmd.arg == "" {
+			fmt.Fprintln(c, "501-Missing argument")
+			fmt.Fprintln(c, "501 TYPE is now", typeStringify(st.dtype))
+			return
+		}
+		dtype, err := parseType(cmd.arg)
+		if err != nil {
+			fmt.Fprintln(c, "504-"+err.Error())
+			fmt.Fprintln(c, "504 TYPE is now", typeStringify(st.dtype))
+			return
+		}
+		st.dtype = dtype
+		fmt.Fprintln(c, "200-TYPE command successful")
+		fmt.Fprintln(c, "200 TYPE is now", typeStringify(st.dtype))
 	}
 }
 
@@ -100,4 +116,24 @@ func parsePort(arg string) (string, error) {
 		return "", fmt.Errorf("Sorry, but I won't connect to ports < 1024")
 	}
 	return fmt.Sprintf("%d.%d.%d.%d:%d", h1, h2, h3, h4, p), nil
+}
+
+func parseType(arg string) (int, error) {
+	switch strings.ToUpper(arg) {
+	case "A":
+		return 0, nil
+	case "I":
+		return 1, nil
+	default:
+		return -1, fmt.Errorf("Unknown Type: %s", arg)
+	}
+}
+
+func typeStringify(dtype int) string {
+	switch dtype {
+	case 1:
+		return "8-bit binary"
+	default:
+		return "ASCII"
+	}
 }

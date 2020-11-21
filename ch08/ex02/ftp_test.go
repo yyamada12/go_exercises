@@ -73,3 +73,38 @@ func Test_Port(t *testing.T) {
 		})
 	}
 }
+func Test_Type(t *testing.T) {
+	tests := []struct {
+		name  string
+		cmd   string
+		arg   string
+		want1 string
+		want2 string
+	}{
+		{"no arg", "TYPE", "", "501-Missing argument", "501 TYPE is now ASCII"},
+		{"image", "TYPE", "i", "200-TYPE command successful", "200 TYPE is now 8-bit binary"},
+		{"unknown type", "TYPE", "xx", "504-Unknown Type: xx", "504 TYPE is now ASCII"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, client := net.Pipe()
+			go func() {
+				handleConn(server)
+				server.Close()
+			}()
+			fmt.Fprintln(client, tt.cmd, tt.arg)
+			input := bufio.NewScanner(client)
+			input.Scan()
+			got1 := input.Text()
+			if got1 != tt.want1 {
+				t.Errorf("got %q, want %q", got1, tt.want1)
+			}
+			input.Scan()
+			got2 := input.Text()
+			if got2 != tt.want2 {
+				t.Errorf("got %q, want %q", got2, tt.want2)
+			}
+			client.Close()
+		})
+	}
+}

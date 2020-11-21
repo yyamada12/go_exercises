@@ -11,8 +11,8 @@
 ## TODO
 
 - [x] USER
-- [ ] PORT
-- [ ] TYPE
+- [x] PORT
+- [x] TYPE
 - [ ] MODE
 - [ ] STRU
 - [ ] RETR
