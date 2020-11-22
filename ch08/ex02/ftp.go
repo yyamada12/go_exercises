@@ -122,7 +122,23 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		fmt.Fprintln(c, "200 F OK")
+	case "RETR":
+		if cmd.arg == "" {
+			fmt.Fprintln(c, "501 No file name")
+			return
+		}
+	case "STOR":
+		if cmd.arg == "" {
+			fmt.Fprintln(c, "501 No file name")
+			return
+		}
+		conn, err := net.Dial("tcp", st.addr)
+		if err != nil {
+			fmt.Fprintln(c, "425 No data connection")
+			return
+		}
 	}
+
 }
 
 func parsePort(arg string) (string, error) {
@@ -156,4 +172,8 @@ func typeStringify(dtype int) string {
 	default:
 		return "ASCII"
 	}
+}
+
+func openFile(name string) {
+
 }
