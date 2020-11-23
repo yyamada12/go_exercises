@@ -4,8 +4,10 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"os"
 	"strings"
 )
 
@@ -128,15 +130,40 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 	case "STOR":
+		if !st.isLoggedIn {
+			fmt.Fprintln(c, "530 You aren't logged in")
+			return
+		}
 		if cmd.arg == "" {
 			fmt.Fprintln(c, "501 No file name")
 			return
 		}
 		conn, err := net.Dial("tcp", st.addr)
+		println(st.addr)
 		if err != nil {
+			println(err.Error())
 			fmt.Fprintln(c, "425 No data connection")
 			return
 		}
+		fmt.Fprintln(c, "150 Accepted data connection")
+		defer conn.Close()
+
+		file, err := os.Create(cmd.arg)
+		if err != nil {
+			fmt.Fprintln(c, "553 Can't open that file:", err)
+			return
+		}
+
+		_, err = io.Copy(file, conn)
+		if err != nil {
+			fmt.Fprintln(c, "451", err)
+			return
+		}
+		if err = file.Close(); err != nil {
+			fmt.Fprintln(c, "451", err)
+			return
+		}
+		fmt.Fprintln(c, "226 File successfully transferred")
 	}
 
 }
