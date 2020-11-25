@@ -28,11 +28,13 @@ func main() {
 }
 
 type status struct {
-	user       string
-	addr       string // default: client addr, in passive mode: server addr
-	dtype      int    // 0(default): ASCII, 1: Image
-	isPassive  bool
-	isLoggedIn bool
+	user          string
+	addr          string // default: client addr, in passive mode: server addr
+	dtype         int    // 0(default): ASCII, 1: Image
+	isPassive     bool
+	isLoggedIn    bool
+	isTransfering bool
+	transferDone  <-chan struct{}
 }
 
 func handleConn(c net.Conn) {
@@ -44,7 +46,6 @@ func handleConn(c net.Conn) {
 		cmd := parseInput(input.Text())
 		handleCommand(cmd, c, st)
 	}
-
 }
 
 type command struct {
@@ -73,6 +74,12 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		st.user = cmd.arg
 		st.isLoggedIn = true
 		fmt.Fprintln(c, "230 OK. Current directory is /")
+	case "QUIT":
+		if st.isTransfering {
+			<-st.transferDone
+		}
+		fmt.Fprintln(c, "221 Logout")
+		c.Close()
 	case "PORT":
 		if !st.isLoggedIn {
 			fmt.Fprintln(c, "530 You aren't logged in")
@@ -133,30 +140,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			fmt.Fprintln(c, "501 No file name")
 			return
 		}
-		conn, err := net.Dial("tcp", st.addr)
-		if err != nil {
-			fmt.Fprintln(c, "425 No data connection")
-			return
-		}
-		fmt.Fprintln(c, "150 Accepted data connection")
-		defer conn.Close()
-
-		file, err := os.Open(cmd.arg)
-		if err != nil {
-			fmt.Fprintln(c, "553 Can't open that file:", err)
-			return
-		}
-
-		_, err = io.Copy(conn, file)
-		if err != nil {
-			fmt.Fprintln(c, "451", err)
-			return
-		}
-		if err = file.Close(); err != nil {
-			fmt.Fprintln(c, "451", err)
-			return
-		}
-		fmt.Fprintln(c, "226 File successfully transferred")
+		go retr(c, st, cmd.arg)
 
 	case "STOR":
 		if !st.isLoggedIn {
@@ -167,30 +151,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			fmt.Fprintln(c, "501 No file name")
 			return
 		}
-		conn, err := net.Dial("tcp", st.addr)
-		if err != nil {
-			fmt.Fprintln(c, "425 No data connection")
-			return
-		}
-		fmt.Fprintln(c, "150 Accepted data connection")
-		defer conn.Close()
-
-		file, err := os.Create(cmd.arg)
-		if err != nil {
-			fmt.Fprintln(c, "553 Can't open that file:", err)
-			return
-		}
-
-		_, err = io.Copy(file, conn)
-		if err != nil {
-			fmt.Fprintln(c, "451", err)
-			return
-		}
-		if err = file.Close(); err != nil {
-			fmt.Fprintln(c, "451", err)
-			return
-		}
-		fmt.Fprintln(c, "226 File successfully transferred")
+		go store(c, st, cmd.arg)
 	}
 
 }
@@ -228,6 +189,66 @@ func typeStringify(dtype int) string {
 	}
 }
 
-func openFile(name string) {
+func retr(c net.Conn, st *status, filename string) {
+	conn, err := net.Dial("tcp", st.addr)
+	if err != nil {
+		fmt.Fprintln(c, "425 No data connection")
+		return
+	}
+	fmt.Fprintln(c, "150 Accepted data connection")
+	transferDone := make(chan struct{})
+	st.transferDone = transferDone
+	st.isTransfering = true
+	defer conn.Close()
+	defer func() { st.isTransfering = false }()
+	defer func() { close(transferDone) }()
 
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Fprintln(c, "553 Can't open that file:", err)
+		return
+	}
+
+	_, err = io.Copy(conn, file)
+	if err != nil {
+		fmt.Fprintln(c, "451", err)
+		return
+	}
+	if err = file.Close(); err != nil {
+		fmt.Fprintln(c, "451", err)
+		return
+	}
+	fmt.Fprintln(c, "226 File successfully transferred")
+}
+
+func store(c net.Conn, st *status, filename string) {
+	conn, err := net.Dial("tcp", st.addr)
+	if err != nil {
+		fmt.Fprintln(c, "425 No data connection")
+		return
+	}
+	fmt.Fprintln(c, "150 Accepted data connection")
+	transferDone := make(chan struct{})
+	st.transferDone = transferDone
+	st.isTransfering = true
+	defer conn.Close()
+	defer func() { st.isTransfering = false }()
+	defer func() { close(transferDone) }()
+
+	file, err := os.Create(filename)
+	if err != nil {
+		fmt.Fprintln(c, "553 Can't open that file:", err)
+		return
+	}
+
+	_, err = io.Copy(file, conn)
+	if err != nil {
+		fmt.Fprintln(c, "451", err)
+		return
+	}
+	if err = file.Close(); err != nil {
+		fmt.Fprintln(c, "451", err)
+		return
+	}
+	fmt.Fprintln(c, "226 File successfully transferred")
 }

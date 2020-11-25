@@ -15,10 +15,35 @@
 - [x] TYPE
 - [x] MODE
 - [x] STRU
-- [ ] STOR
-- [ ] RETR
+- [x] STOR
+- [x] RETR
 - [ ] NOOP
-- [ ] QUIT
+- [x] QUIT
+
+- [ ] PASS
+- [ ] ACCT
+- [ ] CWD
+- [ ] CDUP
+- [ ] SMNT
+- [ ] REIN
+- [ ] PASV
+- [ ] STOU
+- [ ] APPE
+- [ ] ALLO
+- [ ] REST
+- [ ] RNFR
+- [ ] RNTO
+- [ ] ABOR
+- [ ] DELE
+- [ ] RMD
+- [ ] MKD
+- [ ] PWD
+- [ ] LIST
+- [ ] NLST
+- [ ] SITE
+- [ ] SYST
+- [ ] STAT
+- [ ] HELP
 
 ## 最小の実装
 
