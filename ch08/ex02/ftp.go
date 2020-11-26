@@ -141,7 +141,6 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		go retr(c, st, cmd.arg)
-
 	case "STOR":
 		if !st.isLoggedIn {
 			fmt.Fprintln(c, "530 You aren't logged in")
@@ -152,6 +151,8 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		go store(c, st, cmd.arg)
+	case "NOOP":
+		fmt.Fprintln(c, "200 Zzz...")
 	}
 
 }

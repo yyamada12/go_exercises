@@ -17,7 +17,7 @@
 - [x] STRU
 - [x] STOR
 - [x] RETR
-- [ ] NOOP
+- [x] NOOP
 - [x] QUIT
 
 - [ ] PASS
