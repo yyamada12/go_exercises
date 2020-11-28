@@ -6,22 +6,25 @@ import (
 	"net"
 	"os"
 	"strings"
+
+	"github.com/andybalholm/crlf"
 )
 
 type status struct {
-	user          string
-	addr          string // default: client addr, in passive mode: server addr
-	dtype         int    // 0(default): ASCII, 1: Image
-	isPassive     bool
-	isLoggedIn    bool
-	isTransfering bool
-	transferDone  <-chan struct{}
+	user  string
+	addr  string
+	dtype int // 0(default): ASCII, 1: Image
 }
 
 type command struct {
 	code string
 	arg  string
 }
+
+const (
+	DTYPE_A = iota
+	DTYPE_I
+)
 
 func parseInput(input string) command {
 	spaceIndex := strings.Index(input, " ")
@@ -41,21 +44,13 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		st.user = cmd.arg
-		st.isLoggedIn = true
 		fmt.Fprintln(c, "230 OK. Current directory is /")
 	case "QUIT":
-		if st.isTransfering {
-			<-st.transferDone
-		}
 		fmt.Fprintln(c, "221 Logout")
 		c.Close()
 	case "PORT":
-		if !st.isLoggedIn {
+		if st.user == "" {
 			fmt.Fprintln(c, "530 You aren't logged in")
-			return
-		}
-		if st.isPassive {
-			fmt.Fprintln(c, "501 Active mode is disabled")
 			return
 		}
 		addr, err := parsePort(cmd.arg)
@@ -101,7 +96,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		}
 		fmt.Fprintln(c, "200 F OK")
 	case "RETR":
-		if !st.isLoggedIn {
+		if st.user == "" {
 			fmt.Fprintln(c, "530 You aren't logged in")
 			return
 		}
@@ -109,9 +104,9 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			fmt.Fprintln(c, "501 No file name")
 			return
 		}
-		go retr(c, st, cmd.arg)
+		retr(c, st, cmd.arg)
 	case "STOR":
-		if !st.isLoggedIn {
+		if st.user == "" {
 			fmt.Fprintln(c, "530 You aren't logged in")
 			return
 		}
@@ -119,7 +114,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			fmt.Fprintln(c, "501 No file name")
 			return
 		}
-		go store(c, st, cmd.arg)
+		store(c, st, cmd.arg)
 	case "NOOP":
 		fmt.Fprintln(c, "200 Zzz...")
 	case "PASS", "ACCT", "SMNT", "ALLO", "SITE":
@@ -127,7 +122,6 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 	default:
 		fmt.Fprintln(c, "502 Command Not Implemented")
 	}
-
 }
 
 func parsePort(arg string) (string, error) {
@@ -146,9 +140,9 @@ func parsePort(arg string) (string, error) {
 func parseType(arg string) (int, error) {
 	switch strings.ToUpper(arg) {
 	case "A":
-		return 0, nil
+		return DTYPE_A, nil
 	case "I":
-		return 1, nil
+		return DTYPE_I, nil
 	default:
 		return -1, fmt.Errorf("Unknown Type: %s", arg)
 	}
@@ -156,7 +150,7 @@ func parseType(arg string) (int, error) {
 
 func typeStringify(dtype int) string {
 	switch dtype {
-	case 1:
+	case DTYPE_I:
 		return "8-bit binary"
 	default:
 		return "ASCII"
@@ -169,13 +163,8 @@ func retr(c net.Conn, st *status, filename string) {
 		fmt.Fprintln(c, "425 No data connection")
 		return
 	}
-	fmt.Fprintln(c, "150 Accepted data connection")
-	transferDone := make(chan struct{})
-	st.transferDone = transferDone
-	st.isTransfering = true
 	defer conn.Close()
-	defer func() { st.isTransfering = false }()
-	defer func() { close(transferDone) }()
+	fmt.Fprintln(c, "150 Accepted data connection")
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -183,7 +172,13 @@ func retr(c net.Conn, st *status, filename string) {
 		return
 	}
 
-	_, err = io.Copy(conn, file)
+	var dataWriter io.Writer = conn
+	if st.dtype == DTYPE_A {
+		// ASCII mode: convert LF to CRLF
+		dataWriter = crlf.NewWriter(conn)
+	}
+
+	_, err = io.Copy(dataWriter, file)
 	if err != nil {
 		fmt.Fprintln(c, "451", err)
 		return
@@ -201,13 +196,8 @@ func store(c net.Conn, st *status, filename string) {
 		fmt.Fprintln(c, "425 No data connection")
 		return
 	}
-	fmt.Fprintln(c, "150 Accepted data connection")
-	transferDone := make(chan struct{})
-	st.transferDone = transferDone
-	st.isTransfering = true
 	defer conn.Close()
-	defer func() { st.isTransfering = false }()
-	defer func() { close(transferDone) }()
+	fmt.Fprintln(c, "150 Accepted data connection")
 
 	file, err := os.Create(filename)
 	if err != nil {
@@ -215,7 +205,13 @@ func store(c net.Conn, st *status, filename string) {
 		return
 	}
 
-	_, err = io.Copy(file, conn)
+	var dataReader io.Reader = conn
+	if st.dtype == DTYPE_A {
+		// ASCII mode: convert CRLF to LF
+		dataReader = crlf.NewReader(conn)
+	}
+
+	_, err = io.Copy(file, dataReader)
 	if err != nil {
 		fmt.Fprintln(c, "451", err)
 		return

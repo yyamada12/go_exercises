@@ -20,19 +20,24 @@ func main() {
 			log.Print(err)
 			continue
 		}
-		log.Printf("%s connected", conn.RemoteAddr())
 		go handleConn(conn)
 	}
 }
 
 func handleConn(c net.Conn) {
 	defer c.Close()
-	input := bufio.NewScanner(c)
+	fmt.Fprintln(c, "220 Welcome")
+
+	client := c.RemoteAddr()
+	log.Printf("%s connected", client)
+
+	scanner := bufio.NewScanner(c)
 	st := new(status)
 
-	fmt.Fprintln(c, "220 Welcome")
-	for input.Scan() {
-		cmd := parseInput(input.Text())
+	for scanner.Scan() {
+		input := scanner.Text()
+		log.Printf("%s: %s", client, input)
+		cmd := parseInput(input)
 		handleCommand(cmd, c, st)
 	}
 	log.Printf("%s closed connection", c.RemoteAddr())
