@@ -2,7 +2,7 @@
 
 ## ドキュメント
 
-- RFC
+- RFC959
   http://srgia.com/docs/rfc959j.html
 
 - @IT インターネット・プロトコル詳説
@@ -19,31 +19,6 @@
 - [x] RETR
 - [x] NOOP
 - [x] QUIT
-
-- [ ] PASS
-- [ ] ACCT
-- [ ] CWD
-- [ ] CDUP
-- [ ] SMNT
-- [ ] REIN
-- [ ] PASV
-- [ ] STOU
-- [ ] APPE
-- [ ] ALLO
-- [ ] REST
-- [ ] RNFR
-- [ ] RNTO
-- [ ] ABOR
-- [ ] DELE
-- [ ] RMD
-- [ ] MKD
-- [ ] PWD
-- [ ] LIST
-- [ ] NLST
-- [ ] SITE
-- [ ] SYST
-- [ ] STAT
-- [ ] HELP
 
 ## 最小の実装
 
@@ -188,28 +163,6 @@ ftp test@localhost
 ```
 
 参考: https://www.sukerou.com/2019/07/dockerftp.html
-
-## 図 2
-
-                  コントロール   +----------------+ コントロール
-                    +--------->| ユーザー側 FTP   |<----------+
-                    |          | ユーザー側 PI    |           |
-                    |          |      "C"       |           |
-                    V          +----------------+           V
-            +----------------+                        +----------------+
-            | サーバー側 FTP   |      データ接続          | サーバー側 FTP   |
-            |      "A"       |<---------------------->|      "B"        |
-            +----------------+ ポート(A)    ポート(B)   +----------------+
-
-
-                ＼    ／
-       A - ASCII |    | N - Non-print
-                 |-><-| T - Telnet 書式制御文字
-       E - EBCDIC|    | C - 改行制御 (ASA)
-                ／    ＼
-       I - Image
-
-       L <バイト幅> -ローカルバイトのバイト幅
 
 ## const
 

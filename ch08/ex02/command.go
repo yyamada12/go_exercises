@@ -122,6 +122,10 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		go store(c, st, cmd.arg)
 	case "NOOP":
 		fmt.Fprintln(c, "200 Zzz...")
+	case "PASS", "ACCT", "SMNT", "ALLO", "SITE":
+		fmt.Fprintln(c, "202 Command not implemented, superfluous at this site")
+	default:
+		fmt.Fprintln(c, "502 Command Not Implemented")
 	}
 
 }

@@ -1,8 +1,9 @@
-// Clock is a TCP server that periodically writes the time.
+// FTP server based on RFC 959
 package main
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net"
 )
@@ -16,10 +17,11 @@ func main() {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Print(err) // e.g., connection aborted
+			log.Print(err)
 			continue
 		}
-		go handleConn(conn) // handle connections concurrently
+		log.Printf("%s connected", conn.RemoteAddr())
+		go handleConn(conn)
 	}
 }
 
@@ -28,8 +30,10 @@ func handleConn(c net.Conn) {
 	input := bufio.NewScanner(c)
 	st := new(status)
 
+	fmt.Fprintln(c, "220 Welcome")
 	for input.Scan() {
 		cmd := parseInput(input.Text())
 		handleCommand(cmd, c, st)
 	}
+	log.Printf("%s closed connection", c.RemoteAddr())
 }
