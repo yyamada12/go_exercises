@@ -13,7 +13,7 @@ import (
 type status struct {
 	user  string
 	addr  string
-	dtype int // 0(default): ASCII, 1: Image
+	dtype int // default: dtypeASCII
 }
 
 type command struct {
@@ -22,8 +22,9 @@ type command struct {
 }
 
 const (
-	DTYPE_A = iota
-	DTYPE_I
+	// dtype
+	dtypeASCII = iota
+	dtypeIMAGE
 )
 
 func parseInput(input string) command {
@@ -140,9 +141,9 @@ func parsePort(arg string) (string, error) {
 func parseType(arg string) (int, error) {
 	switch strings.ToUpper(arg) {
 	case "A":
-		return DTYPE_A, nil
+		return dtypeASCII, nil
 	case "I":
-		return DTYPE_I, nil
+		return dtypeIMAGE, nil
 	default:
 		return -1, fmt.Errorf("Unknown Type: %s", arg)
 	}
@@ -150,7 +151,7 @@ func parseType(arg string) (int, error) {
 
 func typeStringify(dtype int) string {
 	switch dtype {
-	case DTYPE_I:
+	case dtypeIMAGE:
 		return "8-bit binary"
 	default:
 		return "ASCII"
@@ -173,7 +174,7 @@ func retr(c net.Conn, st *status, filename string) {
 	}
 
 	var dataWriter io.Writer = conn
-	if st.dtype == DTYPE_A {
+	if st.dtype == dtypeASCII {
 		// ASCII mode: convert LF to CRLF
 		dataWriter = crlf.NewWriter(conn)
 	}
@@ -206,7 +207,7 @@ func store(c net.Conn, st *status, filename string) {
 	}
 
 	var dataReader io.Reader = conn
-	if st.dtype == DTYPE_A {
+	if st.dtype == dtypeASCII {
 		// ASCII mode: convert CRLF to LF
 		dataReader = crlf.NewReader(conn)
 	}
