@@ -26,8 +26,11 @@ func Test_Login(t *testing.T) {
 				handleConn(server)
 				server.Close()
 			}()
-			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
+			// Login
+			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input.Scan()
 			got := input.Text()
 			if got != tt.want {
@@ -57,9 +60,11 @@ func Test_Port(t *testing.T) {
 				handleConn(server)
 				server.Close()
 			}()
+			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
 			// Login
 			fmt.Fprintln(client, "USER test")
-			input := bufio.NewScanner(client)
 			input.Scan()
 
 			// PORT
@@ -92,8 +97,11 @@ func Test_Type(t *testing.T) {
 				handleConn(server)
 				server.Close()
 			}()
-			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
+			// TYPE
+			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input.Scan()
 			got1 := input.Text()
 			if got1 != tt.want1 {
@@ -127,8 +135,11 @@ func Test_Mode(t *testing.T) {
 				handleConn(server)
 				server.Close()
 			}()
-			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
+			// MODE
+			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input.Scan()
 			got := input.Text()
 			if got != tt.want {
@@ -157,8 +168,11 @@ func Test_Stru(t *testing.T) {
 				handleConn(server)
 				server.Close()
 			}()
-			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
+			// STRU
+			fmt.Fprintln(client, tt.cmd, tt.arg)
 			input.Scan()
 			got := input.Text()
 			if got != tt.want {
