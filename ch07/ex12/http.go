@@ -37,8 +37,8 @@ func (db *database) list(w http.ResponseWriter, req *http.Request) {
 	}
 	t := template.Must(template.ParseFiles("template/index.html"))
 
-	db.Lock()
-	defer db.Unlock()
+	db.RLock()
+	defer db.RUnlock()
 	var items []Item
 	for item, price := range db.m {
 		items = append(items, Item{item, price})
@@ -51,9 +51,14 @@ func (db *database) list(w http.ResponseWriter, req *http.Request) {
 
 func (db *database) price(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
+	if item == "" {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "item required\n")
+		return
+	}
 
-	db.Lock()
-	defer db.Unlock()
+	db.RLock()
+	defer db.RUnlock()
 	if price, ok := db.m[item]; ok {
 		fmt.Fprintf(w, "%s\n", price)
 	} else {
@@ -64,26 +69,57 @@ func (db *database) price(w http.ResponseWriter, req *http.Request) {
 
 func (db *database) create(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
-	price, err := parsePrice(req.URL.Query().Get("price"))
+	if item == "" {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "item required\n")
+		return
+	}
+
+	price := req.URL.Query().Get("price")
+	if price == "" {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "price required\n")
+		return
+	}
+
+	p, err := parsePrice(price)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest) // 400
-		fmt.Fprintf(w, "invalid price: %s\n", err.Error())
+		fmt.Fprintf(w, "invalid price: %s\n", price)
 		return
 	}
 
 	db.Lock()
 	defer db.Unlock()
+	if _, ok := db.m[item]; ok {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "item already exist: %s\n", item)
+		return
+	}
 
-	db.m[item] = price
-	fmt.Fprintf(w, "%s: %s created\n", item, price)
+	db.m[item] = p
+	fmt.Fprintf(w, "%s: %s created\n", item, p)
 }
 
 func (db *database) update(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
-	price, err := parsePrice(req.URL.Query().Get("price"))
+	if item == "" {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "item required\n")
+		return
+	}
+
+	price := req.URL.Query().Get("price")
+	if price == "" {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "price required\n")
+		return
+	}
+
+	p, err := parsePrice(price)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest) // 400
-		fmt.Fprintf(w, "invalid price: %s\n", err.Error())
+		fmt.Fprintf(w, "invalid price: %s\n", price)
 		return
 	}
 
@@ -94,14 +130,23 @@ func (db *database) update(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "item not exists: %s\n", item)
 	}
 
-	db.m[item] = price
-	fmt.Fprintf(w, "price of %s updated for %s\n", item, price)
+	db.m[item] = p
+	fmt.Fprintf(w, "price of %s updated for %s\n", item, p)
 }
 
 func (db *database) delete(w http.ResponseWriter, req *http.Request) {
 	item := req.URL.Query().Get("item")
+	if item == "" {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "item required\n")
+		return
+	}
 	db.Lock()
 	defer db.Unlock()
+	if _, ok := db.m[item]; !ok {
+		w.WriteHeader(http.StatusBadRequest) // 400
+		fmt.Fprintf(w, "item not exists: %s\n", item)
+	}
 	delete(db.m, item)
 	fmt.Fprintf(w, "%s is deleted\n", item)
 }
