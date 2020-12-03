@@ -30,7 +30,7 @@ TYPE, MODE, STRU,(デフォルト値のためのもの)
 RETR, STOR,
 NOOP.
 
-### コード
+### 代表的なエラーコード
 
 500 (文法エラー、そのコマンドは認識されない)
 コマンド行が長すぎるといったエラーもこれに含まれて良い。
@@ -164,57 +164,9 @@ ftp test@localhost
 
 参考: https://www.sukerou.com/2019/07/dockerftp.html
 
-## const
+## example
 
-```
-
-const (
-	StatusRestartMarkerReply    = "110"
-	StatusNotReady              = "120"
-	StatusTransferStarting      = "125"
-	StatusOpeningDataConnection = "150"
-
-	StatusOK                    = "200"
-	StatusNotImplemented        = "202"
-	StatusSystem                = "211"
-	StatusDirectory             = "212"
-	StatusFile                  = "213"
-	StatusHelp                  = "214"
-	StatusNameSystemType        = "215"
-	StatusReadyForNewUser       = "220"
-	StatusNoTransfer            = "225"
-	StatusClosingDataConnection = "226"
-	StatusPassiveMode           = "227"
-	StatusLoggedIn              = "230"
-	StatusActionCompleted       = "250"
-	StatusCreated               = "257"
-
-	StatusNeedPassword = "331"
-	StatusNeedAccount  = "332"
-	StatusPending      = "350"
-
-	StatusNotAvailable             = "421"
-	StatusCannotOpenDataConnection = "425"
-	StatusTransferAborted          = "426"
-	StatusFileBusy                 = "450"
-	StatusLocalError               = "451"
-	StatusInsufficientStorageSpace = "452"
-
-	StatusInvalidCommand               = "500"
-	StatusInvalidParameter             = "501"
-	StatusCommandNotImplemented        = "502"
-	StatusBadCommandSequence           = "503"
-	StatusParameterNotMatchedToCommand = "504"
-	StatusNotLoggedIn                  = "530"
-	StatusNeedAccountForStoring        = "532"
-	StatusFileUnavailable              = "550"
-	StatusUnknownPageType              = "551"
-	StatusExceededStorageAllocation    = "552"
-	StatusFileNameNotAllowed           = "553"
-)
-```
-
-## wire shark
+ftpf_server <-> BSD ftp command
 
 ```
 220---------- Welcome to Pure-FTPd [privsep] [TLS] ----------
