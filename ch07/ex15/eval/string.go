@@ -61,29 +61,17 @@ func (b binary) String() string {
 }
 
 func (c call) String() string {
-	var s strings.Builder
-	s.WriteString(c.fn)
-	s.WriteByte('(')
-	for i, arg := range c.args {
-		if i != 0 {
-			s.WriteString(",")
-		}
-		s.WriteString(arg.String())
+	argStrs := []string{}
+	for _, arg := range c.args {
+		argStrs = append(argStrs, arg.String())
 	}
-	s.WriteByte(')')
-	return s.String()
+	return fmt.Sprintf("%s(%s)", c.fn, strings.Join(argStrs, ","))
 }
 
 func (a aggregate) String() string {
-	var s strings.Builder
-	s.WriteString(a.fn)
-	s.WriteByte('[')
-	for i, arg := range a.args {
-		if i != 0 {
-			s.WriteString(",")
-		}
-		s.WriteString(arg.String())
+	argStrs := []string{}
+	for _, arg := range a.args {
+		argStrs = append(argStrs, arg.String())
 	}
-	s.WriteByte(']')
-	return s.String()
+	return fmt.Sprintf("%s[%s]", a.fn, strings.Join(argStrs, ","))
 }
