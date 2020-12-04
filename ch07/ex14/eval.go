@@ -57,10 +57,7 @@ func (a aggregate) Eval(env Env) float64 {
 	switch a.fn {
 	case "min":
 		res = a.args[0].Eval(env)
-		for i, arg := range a.args {
-			if i == 0 {
-				continue
-			}
+		for _, arg := range a.args[1:] { // arg length >= 2 was validated by Check()
 			v := arg.Eval(env)
 			if res > v {
 				res = v
@@ -69,10 +66,7 @@ func (a aggregate) Eval(env Env) float64 {
 		return res
 	case "max":
 		res = a.args[0].Eval(env)
-		for i, arg := range a.args {
-			if i == 0 {
-				continue
-			}
+		for _, arg := range a.args[1:] { // arg length >= 2 was validated by Check()
 			v := arg.Eval(env)
 			if res < v {
 				res = v
