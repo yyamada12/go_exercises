@@ -15,59 +15,81 @@ func main() {
 		return
 	}
 
-	targets, err := loadTargets(os.Args[1])
+	targets, err := loadTargets(os.Args[1:]...)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	deps, err := loadDeps()
+	dependedBy, err := loadDependedBy()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	printTargetDeps(targets, deps)
+	printDependsOnTargets(targets, dependedBy)
 }
 
 func printUsage() {
 	fmt.Println(`USAGE:
-	go run deps.go PACKAGE
+	go run deps.go [PACKAGES]
 	
-PACKAGE:
-	target package like "strconv"`)
+PACKAGES:
+	target packages like "strconv" "strings" or "...xml..."`)
 }
 
-type listResult struct {
-	Name string
-	Deps []string
+type golistResult struct {
+	ImportPath string
+	Deps       []string
 }
 
-func loadTargets(target string) ([]string, error) {
-	out, err := exec.Command("go", "list", "-json", target).Output()
+func loadTargets(targets ...string) ([]string, error) {
+	res := []string{}
+	results, err := execGoList(targets...)
 	if err != nil {
 		return nil, err
 	}
-	var jsonResult listResult
-	err = json.Unmarshal(out, &jsonResult)
+
+	for _, r := range results {
+		res = append(res, r.ImportPath)
+	}
+	return res, nil
+}
+
+func loadDependedBy() (map[string][]string, error) {
+	results, err := execGoList("...")
 	if err != nil {
 		return nil, err
 	}
-	return jsonResult.Deps, nil
+
+	// The key is depended on by values
+	dependedBy := map[string][]string{}
+	for _, r := range results {
+		for _, dep := range r.Deps {
+			dependedBy[dep] = append(dependedBy[dep], r.ImportPath)
+		}
+	}
+	return dependedBy, nil
+
 }
 
-func loadDeps() (map[string][]string, error) {
-	out, _ := exec.Command("go", "list", "-json", "...").Output()
+func execGoList(targets ...string) ([]golistResult, error) {
+	results := []golistResult{}
+
+	args := append([]string{"list", "-json"}, targets...)
+	out, _ := exec.Command("go", args...).Output()
+
 	decoder := json.NewDecoder(bytes.NewBuffer(out))
-
-	deps := map[string][]string{}
 	for decoder.More() {
-		var jsonResult listResult
-		decoder.Decode(&jsonResult)
-		deps[jsonResult.Name] = jsonResult.Deps
+		res := golistResult{}
+		err := decoder.Decode(&res)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, res)
 	}
-	return deps, nil
+	return results, nil
 }
 
-func printTargetDeps(targets []string, deps map[string][]string) {
+func printDependsOnTargets(targets []string, dependedBy map[string][]string) {
 	seen := map[string]bool{}
 	worklist := targets
 	for len(worklist) > 0 {
@@ -77,7 +99,7 @@ func printTargetDeps(targets []string, deps map[string][]string) {
 			continue
 		}
 		seen[crt] = true
-		worklist = append(worklist, deps[crt]...)
+		worklist = append(worklist, dependedBy[crt]...)
 		fmt.Println(crt)
 	}
 }
