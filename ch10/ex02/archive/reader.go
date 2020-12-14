@@ -16,6 +16,9 @@ func main() {
 }
 
 type Header struct {
+	Name  string // Name of file entry
+	Size  int64  // Logical file size in bytes
+	IsDir bool
 }
 
 type Reader struct {
