@@ -3,6 +3,7 @@ package archive
 import (
 	"archive/zip"
 	"bufio"
+	"fmt"
 	"io"
 	"sync"
 	"sync/atomic"
@@ -90,11 +91,11 @@ func sniff(r reader) filetype {
 // The string returned is the filetype name used during filetype registration.
 // Filetype registration is typically done by an init function in the archive-
 // specific package.
-func NewReader(r io.Reader) (Reader, string, error) {
+func NewReader(r io.Reader) (ArchiveReader, string, error) {
 	rr := asReader(r)
 	f := sniff(rr)
 	if f.newReader == nil {
-		return nil, "", ErrFormat
+		return nil, "", fmt.Errorf("archive: unknown format")
 	}
 	m, err := f.newReader(rr)
 	return m, f.name, err
