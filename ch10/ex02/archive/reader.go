@@ -1,7 +1,6 @@
 package archive
 
 import (
-	"archive/zip"
 	"bufio"
 	"fmt"
 	"io"
@@ -12,8 +11,14 @@ import (
 func main() {
 	// r := NewReader("ch01.zip")
 
-	reader, _ := zip.OpenReader("ch01.zip")
-	reader.File[0].FileInfo().IsDir()
+	// reader, format, err := NewReader("ch01.tar")
+	// fmt.Println(format)
+	// fmt.Println(err)
+	// b, err := ioutil.ReadAll(reader)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println(b)
 }
 
 type Header struct {

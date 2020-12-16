@@ -8,13 +8,13 @@ import (
 )
 
 func init() {
-
+	archive.RegisterFiletype("tar", "", NewReader)
 }
 
 func NewReader(r io.Reader) (archive.ArchiveReader, error) {
 	originalReader := tarpkg.NewReader(r)
 
-	return m, err
+	return &tarReader{*originalReader}, nil
 }
 
 type tarReader struct {
