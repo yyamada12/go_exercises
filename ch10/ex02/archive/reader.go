@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"sync"
 	"sync/atomic"
 )
@@ -96,7 +97,14 @@ func sniff(r reader) filetype {
 // The string returned is the filetype name used during filetype registration.
 // Filetype registration is typically done by an init function in the archive-
 // specific package.
-func NewReader(r io.Reader) (ArchiveReader, string, error) {
+func NewReader(filename string) (ArchiveReader, string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, "", err
+	}
+	defer file.Close()
+
+	r := bufio.NewReader(file)
 	rr := asReader(r)
 	f := sniff(rr)
 	if f.newReader == nil {
