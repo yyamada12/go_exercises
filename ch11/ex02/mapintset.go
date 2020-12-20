@@ -2,7 +2,8 @@
 package intset
 
 import (
-	"strconv"
+	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -37,10 +38,12 @@ func (s *MapIntSet) UnionWith(t *MapIntSet) {
 
 // String returns the set as a string of the form "{1 2 3}".
 func (s *MapIntSet) String() string {
-	elems := []string{}
+	elems := []int{}
 	for elem := range s.m {
-		elems = append(elems, strconv.Itoa(elem))
+		elems = append(elems, elem)
 	}
+	sort.IntSlice(elems).Sort()
 
-	return "{" + strings.Join(elems, " ") + "}"
+	r := strings.NewReplacer("[", "{", "]", "}")
+	return r.Replace(fmt.Sprintf("%d", elems))
 }

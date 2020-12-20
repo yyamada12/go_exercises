@@ -4,29 +4,35 @@ import (
 	"testing"
 )
 
-func TestIntSet_Has(t *testing.T) {
-	type fields struct {
-		words []uint64
+func Test_wordsAndMap(t *testing.T) {
+	var x, y IntSet
+	x2 := NewMapIntSet()
+	y2 := NewMapIntSet()
+	x.Add(1)
+	x2.Add(1)
+	x.Add(144)
+	x2.Add(144)
+	x.Add(9)
+	x2.Add(9)
+	if x.String() != x2.String() {
+		t.Errorf("x got %s, want %s", x.String(), x2.String())
 	}
-	type args struct {
-		x int
+
+	y.Add(9)
+	y2.Add(9)
+	y.Add(42)
+	y2.Add(42)
+
+	x.UnionWith(&y)
+	x2.UnionWith(y2)
+	if x.String() != x2.String() {
+		t.Errorf("x union with y got %s, want %s", x.String(), x2.String())
 	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
-	}{
-		// TODO: Add test cases.
+
+	if x.Has(9) != x2.Has(9) {
+		t.Errorf("x.Has(9) got %t, want %t", x.Has(9), x2.Has(9))
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &IntSet{
-				words: tt.fields.words,
-			}
-			if got := s.Has(tt.args.x); got != tt.want {
-				t.Errorf("IntSet.Has() = %v, want %v", got, tt.want)
-			}
-		})
+	if x.Has(123) != x2.Has(123) {
+		t.Errorf("x.Has(123) got %t, want %t", x.Has(123), x2.Has(123))
 	}
 }
