@@ -24,13 +24,13 @@ func map_Add(b *testing.B, inputs []int) {
 	}
 }
 
-func Benchmark_Add(b *testing.B) {
+func Bench_Add(b *testing.B, size, max int) {
 	seed := time.Now().UTC().UnixNano()
 	b.Logf("Random seed: %d", seed)
 	rng := rand.New(rand.NewSource(seed))
 	var inputs []int
-	for i := 0; i < 100000; i++ {
-		inputs = append(inputs, rng.Intn(10000))
+	for i := 0; i < size; i++ {
+		inputs = append(inputs, rng.Intn(max))
 	}
 	b.Run("words", func(b *testing.B) {
 		words_Add(b, inputs)
@@ -52,16 +52,16 @@ func map_UnionWith(b *testing.B, x, y *MapIntSet) {
 	}
 }
 
-func Benchmark_UnionWith(b *testing.B) {
+func Bench_UnionWith(b *testing.B, size, max int) {
 	seed := time.Now().UTC().UnixNano()
 	b.Logf("Random seed: %d", seed)
 	rng := rand.New(rand.NewSource(seed))
 	var x, y IntSet
 	x2 := NewMapIntSet()
 	y2 := NewMapIntSet()
-	for i := 0; i < 100000; i++ {
-		r1 := rng.Intn(10000)
-		r2 := rng.Intn(10000)
+	for i := 0; i < size; i++ {
+		r1 := rng.Intn(max)
+		r2 := rng.Intn(max)
 		x.Add(r1)
 		y.Add(r2)
 		x2.Add(r1)
@@ -87,18 +87,18 @@ func map_Has(b *testing.B, x *MapIntSet, e int) {
 	}
 }
 
-func Benchmark_Has(b *testing.B) {
+func Bench_Has(b *testing.B, size, max int) {
 	seed := time.Now().UTC().UnixNano()
 	b.Logf("Random seed: %d", seed)
 	rng := rand.New(rand.NewSource(seed))
 	var x IntSet
 	x2 := NewMapIntSet()
-	for i := 0; i < 100000; i++ {
-		r := rng.Intn(10000)
+	for i := 0; i < size; i++ {
+		r := rng.Intn(max)
 		x.Add(r)
 		x2.Add(r)
 	}
-	e := rng.Intn(10000)
+	e := rng.Intn(max)
 
 	b.Run("words", func(b *testing.B) {
 		words_Has(b, &x, e)
@@ -106,4 +106,22 @@ func Benchmark_Has(b *testing.B) {
 	b.Run("map", func(b *testing.B) {
 		map_Has(b, x2, e)
 	})
+}
+
+func Benchmark_wordsAndMap(b *testing.B) {
+	for _, size := range []int{10, 1000, 100000} {
+		for _, max := range []int{100, 10000, 1000000} {
+			b.Logf("size of set: %d", size)
+			b.Logf("max element size: %d", max)
+			b.Run("Add", func(b *testing.B) {
+				Bench_Add(b, size, max)
+			})
+			b.Run("UnionWith", func(b *testing.B) {
+				Bench_UnionWith(b, size, max)
+			})
+			b.Run("Has", func(b *testing.B) {
+				Bench_Has(b, size, max)
+			})
+		}
+	}
 }
