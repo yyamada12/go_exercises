@@ -2,18 +2,27 @@ package archive
 
 import (
 	tarpkg "archive/tar"
-	"io"
+	"bufio"
+	"os"
+	"strings"
 
 	"github.com/yyamada12/go_exercises/ch10/ex02/archive"
 )
 
 func init() {
-	archive.RegisterFiletype("tar", "", NewReader)
+	archive.RegisterFiletype("tar", strings.Repeat("?", 257)+"ustar", NewReader)
 }
 
-func NewReader(r io.Reader) (archive.ArchiveReader, error) {
-	originalReader := tarpkg.NewReader(r)
+func NewReader(filename string) (archive.ArchiveReader, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
 
+	r := bufio.NewReader(file)
+
+	originalReader := tarpkg.NewReader(r)
 	return &tarReader{*originalReader}, nil
 }
 

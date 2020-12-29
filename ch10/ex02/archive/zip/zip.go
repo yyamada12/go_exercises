@@ -8,27 +8,47 @@ import (
 )
 
 func init() {
-	archive.RegisterFiletype("zip", "", NewReader)
+	archive.RegisterFiletype("zip", "PK", NewReader)
 }
 
-func NewReader(r io.Reader) (archive.ArchiveReader, error) {
-	originalReader := zippkg.NewReader()
-
-	return &tarReader{*originalReader}, nil
-}
-
-type zipReader struct {
-	origin zippkg.Reader
-}
-
-func (r *zipReaderzipReader) Read(p []byte) (n int, err error) {
-	return r.origin.Read(p)
-}
-
-func (r *zipReader) Next() (*archive.Header, error) {
-	h, err := r.origin.Next()
+func NewReader(filename string) (archive.ArchiveReader, error) {
+	originalReader, err := zippkg.OpenReader(filename)
 	if err != nil {
 		return nil, err
 	}
-	return &archive.Header{h.Name, h.Size, h.Typeflag == tarpkg.TypeLink || h.Typeflag == tarpkg.TypeSymlink || h.Typeflag == tarpkg.TypeDir}, nil
+
+	return &zipReader{origin: originalReader}, nil
+}
+
+type zipReader struct {
+	origin *zippkg.ReadCloser
+	reader *io.ReadCloser
+	crt    int
+}
+
+func (r *zipReader) Read(p []byte) (n int, err error) {
+	if r.reader != nil {
+		reader := *r.reader
+		return reader.Read(p)
+	}
+	reader, err := r.origin.File[r.crt].Open()
+	if err != nil {
+		return 0, err
+	}
+	r.reader = &reader
+	return reader.Read(p)
+}
+
+func (r *zipReader) Next() (*archive.Header, error) {
+	if r.reader != nil {
+		reader := *r.reader
+		reader.Close()
+		r.reader = nil
+	}
+	r.crt++
+	if r.crt >= len(r.origin.File) {
+		return nil, io.EOF
+	}
+	f := r.origin.File[r.crt].FileInfo()
+	return &archive.Header{f.Name(), f.Size(), f.IsDir()}, nil
 }

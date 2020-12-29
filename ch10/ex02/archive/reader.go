@@ -39,7 +39,7 @@ type ArchiveReader interface {
 
 type filetype struct {
 	name, magic string
-	newReader   func(io.Reader) (ArchiveReader, error)
+	newReader   func(string) (ArchiveReader, error)
 }
 
 var (
@@ -47,7 +47,7 @@ var (
 	atomicFiletypes atomic.Value
 )
 
-func RegisterFiletype(name, magic string, newReader func(io.Reader) (ArchiveReader, error)) {
+func RegisterFiletype(name, magic string, newReader func(string) (ArchiveReader, error)) {
 	filetypesMu.Lock()
 	filetypes, _ := atomicFiletypes.Load().([]filetype)
 	atomicFiletypes.Store(append(filetypes, filetype{name, magic, newReader}))
@@ -58,14 +58,6 @@ func RegisterFiletype(name, magic string, newReader func(io.Reader) (ArchiveRead
 type reader interface {
 	io.Reader
 	Peek(int) ([]byte, error)
-}
-
-// asReader converts an io.Reader to a reader.
-func asReader(r io.Reader) reader {
-	if rr, ok := r.(reader); ok {
-		return rr
-	}
-	return bufio.NewReader(r)
 }
 
 // Match reports whether magic matches b. Magic may contain "?" wildcards.
@@ -105,11 +97,10 @@ func NewReader(filename string) (ArchiveReader, string, error) {
 	defer file.Close()
 
 	r := bufio.NewReader(file)
-	rr := asReader(r)
-	f := sniff(rr)
+	f := sniff(r)
 	if f.newReader == nil {
 		return nil, "", fmt.Errorf("archive: unknown format")
 	}
-	m, err := f.newReader(rr)
+	m, err := f.newReader(filename)
 	return m, f.name, err
 }
