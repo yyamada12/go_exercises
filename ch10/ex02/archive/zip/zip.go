@@ -46,9 +46,13 @@ func (r *zipReader) Next() (*archive.Header, error) {
 		r.reader = nil
 	}
 	r.crt++
-	if r.crt >= len(r.origin.File) {
+	if r.crt >= len(r.origin.Reader.File) {
 		return nil, io.EOF
 	}
 	f := r.origin.File[r.crt].FileInfo()
 	return &archive.Header{f.Name(), f.Size(), f.IsDir()}, nil
+}
+
+func (r *zipReader) Close() error {
+	return r.origin.Close()
 }

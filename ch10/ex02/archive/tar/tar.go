@@ -18,16 +18,16 @@ func NewReader(filename string) (archive.ArchiveReader, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
 	r := bufio.NewReader(file)
 
 	originalReader := tarpkg.NewReader(r)
-	return &tarReader{*originalReader}, nil
+	return &tarReader{originalReader, file}, nil
 }
 
 type tarReader struct {
-	origin tarpkg.Reader
+	origin *tarpkg.Reader
+	file   *os.File
 }
 
 func (r *tarReader) Read(p []byte) (n int, err error) {
@@ -40,4 +40,8 @@ func (r *tarReader) Next() (*archive.Header, error) {
 		return nil, err
 	}
 	return &archive.Header{h.Name, h.Size, h.Typeflag == tarpkg.TypeLink || h.Typeflag == tarpkg.TypeSymlink || h.Typeflag == tarpkg.TypeDir}, nil
+}
+
+func (r *tarReader) Close() error {
+	return r.file.Close()
 }

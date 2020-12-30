@@ -35,6 +35,7 @@ type Reader struct {
 type ArchiveReader interface {
 	Next() (*Header, error)
 	io.Reader
+	Close() error
 }
 
 type filetype struct {
@@ -74,7 +75,14 @@ func match(magic string, b []byte) bool {
 }
 
 // Sniff determines the format of r's data.
-func sniff(r reader) filetype {
+func sniff(filename string) filetype {
+	file, err := os.Open(filename)
+	if err != nil {
+		return filetype{}
+	}
+	defer file.Close()
+
+	r := bufio.NewReader(file)
 	filetypes, _ := atomicFiletypes.Load().([]filetype)
 	for _, f := range filetypes {
 		b, err := r.Peek(len(f.magic))
@@ -90,14 +98,7 @@ func sniff(r reader) filetype {
 // Filetype registration is typically done by an init function in the archive-
 // specific package.
 func NewReader(filename string) (ArchiveReader, string, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, "", err
-	}
-	defer file.Close()
-
-	r := bufio.NewReader(file)
-	f := sniff(r)
+	f := sniff(filename)
 	if f.newReader == nil {
 		return nil, "", fmt.Errorf("archive: unknown format")
 	}
