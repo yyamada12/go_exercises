@@ -9,19 +9,6 @@ import (
 	"sync/atomic"
 )
 
-func main() {
-	// r := NewReader("ch01.zip")
-
-	// reader, format, err := NewReader("ch01.tar")
-	// fmt.Println(format)
-	// fmt.Println(err)
-	// b, err := ioutil.ReadAll(reader)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(b)
-}
-
 type Header struct {
 	Name  string // Name of file entry
 	Size  int64  // Logical file size in bytes

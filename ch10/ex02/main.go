@@ -23,6 +23,7 @@ func main() {
 	defer reader.Close()
 
 	fmt.Println(format)
+
 	for {
 		header, err := reader.Next()
 		if err == io.EOF {

@@ -17,7 +17,7 @@ func NewReader(filename string) (archive.ArchiveReader, error) {
 		return nil, err
 	}
 
-	return &zipReader{origin: originalReader}, nil
+	return &zipReader{origin: originalReader, crt: -1}, nil
 }
 
 type zipReader struct {
@@ -27,6 +27,9 @@ type zipReader struct {
 }
 
 func (r *zipReader) Read(p []byte) (n int, err error) {
+	if r.crt == -1 {
+		return 0, io.EOF
+	}
 	if r.reader != nil {
 		reader := *r.reader
 		return reader.Read(p)
