@@ -184,6 +184,35 @@ func Test_Stru(t *testing.T) {
 	}
 }
 
+func Test_Pwd(t *testing.T) {
+	dir, _ := os.Getwd()
+	tests := []struct {
+		name string
+		want string
+	}{
+		{"pwd", fmt.Sprintf("257 Current directory is %q", dir)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, client := net.Pipe()
+			go func() {
+				handleConn(server)
+				server.Close()
+			}()
+			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
+			fmt.Fprintln(client, "PWD")
+			input.Scan()
+			got := input.Text()
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+			client.Close()
+		})
+	}
+}
+
 func Test_RetrNoConnect(t *testing.T) {
 	tests := []struct {
 		name string

@@ -14,6 +14,7 @@ type status struct {
 	user  string
 	addr  string
 	dtype int // default: dtypeASCII
+	dir   string
 }
 
 type command struct {
@@ -45,7 +46,17 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		st.user = cmd.arg
-		fmt.Fprintln(c, "230 OK. Current directory is /")
+	case "PWD":
+		if st.dir == "" {
+			dir, err := os.Getwd()
+			if err != nil {
+				fmt.Fprintln(c, "550 Requested action not taken")
+				return
+			}
+			st.dir = dir
+		}
+		fmt.Fprintln(c, "257 Current directory is", `"`+st.dir+`"`)
+
 	case "QUIT":
 		fmt.Fprintln(c, "221 Logout")
 		c.Close()
