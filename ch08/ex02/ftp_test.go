@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -19,6 +20,7 @@ func Test_Login(t *testing.T) {
 		{"no user name", "USER", "", "530 This is a private system - No anonymous login"},
 		{"test user login", "USER", "test", "230 OK. Current directory is /"},
 		{"PORT before login", "PORT", "127,0,0,1,4,20", "530 You aren't logged in"},
+		{"CWD before login", "CWD", "..", "530 You aren't logged in"},
 		{"RETR before login", "RETR", "memo.md", "530 You aren't logged in"},
 		{"STOR before login", "STOR", "memo.md", "530 You aren't logged in"},
 	}
@@ -203,6 +205,44 @@ func Test_Pwd(t *testing.T) {
 			input.Scan() // 220 Welcome
 
 			fmt.Fprintln(client, "PWD")
+			input.Scan()
+			got := input.Text()
+			if got != tt.want {
+				t.Errorf("got %q, want %q", got, tt.want)
+			}
+			client.Close()
+		})
+	}
+}
+
+func Test_Cwd(t *testing.T) {
+	dir, _ := os.Getwd()
+	prt, _ := filepath.Abs("..")
+	tests := []struct {
+		name string
+		arg  string
+		want string
+	}{
+		{"no arg", "", fmt.Sprintf("250 directory changed to %q", dir)},
+		{"to current directory", ".", fmt.Sprintf("250 directory changed to %q", dir)},
+		{"to parent directory", "..", fmt.Sprintf("250 directory changed to %q", prt)},
+		{"to adjacent directory", "../ex01", fmt.Sprintf("250 directory changed to %q", prt+"/ex01")},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, client := net.Pipe()
+			go func() {
+				handleConn(server)
+				server.Close()
+			}()
+			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
+			// Login
+			fmt.Fprintln(client, "USER test")
+			input.Scan()
+
+			fmt.Fprintln(client, "CWD", tt.arg)
 			input.Scan()
 			got := input.Text()
 			if got != tt.want {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/andybalholm/crlf"
@@ -46,17 +47,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		st.user = cmd.arg
-	case "PWD":
-		if st.dir == "" {
-			dir, err := os.Getwd()
-			if err != nil {
-				fmt.Fprintln(c, "550 Requested action not taken")
-				return
-			}
-			st.dir = dir
-		}
-		fmt.Fprintln(c, "257 Current directory is", `"`+st.dir+`"`)
-
+		fmt.Fprintln(c, "230 OK")
 	case "QUIT":
 		fmt.Fprintln(c, "221 Logout")
 		c.Close()
@@ -107,6 +98,40 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 			return
 		}
 		fmt.Fprintln(c, "200 F OK")
+	case "PWD":
+		if st.dir == "" {
+			dir, err := os.Getwd()
+			if err != nil {
+				fmt.Fprintln(c, "550", err)
+				return
+			}
+			st.dir = dir
+		}
+		fmt.Fprintln(c, "257 Current directory is", `"`+st.dir+`"`)
+	case "CWD":
+		if st.user == "" {
+			fmt.Fprintln(c, "530 You aren't logged in")
+			return
+		}
+
+		var newDir string
+		if filepath.IsAbs(cmd.arg) {
+			newDir = cmd.arg
+		} else {
+			dir, err := relPathToAbs(st.dir, cmd.arg)
+			if err != nil {
+				fmt.Fprintln(c, "550", err)
+				return
+			}
+			newDir = dir
+		}
+
+		if !isDir(newDir) {
+			fmt.Fprintln(c, "501", newDir, "is not directory")
+			return
+		}
+		st.dir = newDir
+		fmt.Fprintln(c, "250 directory changed to", `"`+newDir+`"`)
 	case "RETR":
 		if st.user == "" {
 			fmt.Fprintln(c, "530 You aren't logged in")
@@ -167,6 +192,21 @@ func typeStringify(dtype int) string {
 	default:
 		return "ASCII"
 	}
+}
+
+func relPathToAbs(crt, rel string) (string, error) {
+	var path string
+	if crt == "" {
+		path = rel
+	} else {
+		path = crt + "/" + rel
+	}
+	return filepath.Abs(path)
+}
+
+func isDir(dir string) bool {
+	f, err := os.Stat(dir)
+	return !os.IsNotExist(err) && f.IsDir()
 }
 
 func retr(c net.Conn, st *status, filename string) {
