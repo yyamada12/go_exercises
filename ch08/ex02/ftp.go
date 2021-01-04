@@ -26,14 +26,19 @@ func main() {
 
 func handleConn(c net.Conn) {
 	defer c.Close()
+
+	st, err := newStatus()
+	if err != nil {
+		log.Printf("create new status failed: %s", err)
+		fmt.Fprintln(c, "421 Service not available, closing control connection")
+		return
+	}
 	fmt.Fprintln(c, "220 Welcome")
 
 	client := c.RemoteAddr()
 	log.Printf("%s connected", client)
 
 	scanner := bufio.NewScanner(c)
-	st := new(status)
-
 	for scanner.Scan() {
 		input := scanner.Text()
 		log.Printf("%s: %s", client, input)

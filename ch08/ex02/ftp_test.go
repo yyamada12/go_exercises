@@ -18,7 +18,7 @@ func Test_Login(t *testing.T) {
 		want string
 	}{
 		{"no user name", "USER", "", "530 This is a private system - No anonymous login"},
-		{"test user login", "USER", "test", "230 OK. Current directory is /"},
+		{"test user login", "USER", "test", "230 OK"},
 		{"PORT before login", "PORT", "127,0,0,1,4,20", "530 You aren't logged in"},
 		{"CWD before login", "CWD", "..", "530 You aren't logged in"},
 		{"RETR before login", "RETR", "memo.md", "530 You aren't logged in"},
@@ -248,6 +248,60 @@ func Test_Cwd(t *testing.T) {
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}
+			client.Close()
+		})
+	}
+}
+
+func Test_List(t *testing.T) {
+	dir, _ := os.Getwd()
+
+	// Data Connection
+	_, err := net.Listen("tcp", "localhost:1034")
+	if err != nil {
+		t.Errorf("listen error: %s", err)
+	}
+
+	tests := []struct {
+		name  string
+		arg   string
+		want1 string
+		want2 string
+	}{
+		{"not exist directory", "nodir", "150 Accepted data connection", "550 open " + dir + "/nodir: no such file or directory"},
+		{"exist directory", "..", "150 Accepted data connection", "226 List successfully transferred"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server, client := net.Pipe()
+			go func() {
+				handleConn(server)
+				server.Close()
+			}()
+			input := bufio.NewScanner(client)
+			input.Scan() // 220 Welcome
+
+			// Login
+			fmt.Fprintln(client, "USER test")
+			input.Scan()
+
+			// PORT
+			fmt.Fprintln(client, "PORT 127,0,0,1,4,10") // 127.0.0.1:1034
+			input.Scan()
+
+			// LIST
+			fmt.Fprintln(client, "LIST", tt.arg)
+			input.Scan()
+			got1 := input.Text()
+			if got1 != tt.want1 {
+				t.Errorf("got %q, want %q", got1, tt.want1)
+			}
+			input.Scan()
+			got2 := input.Text()
+			if got2 != tt.want2 {
+				t.Errorf("got %q, want %q", got2, tt.want2)
+			}
+
 			client.Close()
 		})
 	}

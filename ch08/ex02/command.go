@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
@@ -16,6 +17,16 @@ type status struct {
 	addr  string
 	dtype int // default: dtypeASCII
 	dir   string
+}
+
+func newStatus() (*status, error) {
+	st := new(status)
+	dir, err := os.Getwd()
+	if err != nil {
+		return st, err
+	}
+	st.dir = dir
+	return st, nil
 }
 
 type command struct {
@@ -99,14 +110,6 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		}
 		fmt.Fprintln(c, "200 F OK")
 	case "PWD":
-		if st.dir == "" {
-			dir, err := os.Getwd()
-			if err != nil {
-				fmt.Fprintln(c, "550", err)
-				return
-			}
-			st.dir = dir
-		}
 		fmt.Fprintln(c, "257 Current directory is", `"`+st.dir+`"`)
 	case "CWD":
 		if st.user == "" {
@@ -118,7 +121,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		if filepath.IsAbs(cmd.arg) {
 			newDir = cmd.arg
 		} else {
-			dir, err := relPathToAbs(st.dir, cmd.arg)
+			dir, err := filepath.Abs(st.dir + "/" + cmd.arg)
 			if err != nil {
 				fmt.Fprintln(c, "550", err)
 				return
@@ -132,6 +135,8 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		}
 		st.dir = newDir
 		fmt.Fprintln(c, "250 directory changed to", `"`+newDir+`"`)
+	case "LIST":
+		list(c, st, cmd.arg)
 	case "RETR":
 		if st.user == "" {
 			fmt.Fprintln(c, "530 You aren't logged in")
@@ -194,19 +199,34 @@ func typeStringify(dtype int) string {
 	}
 }
 
-func relPathToAbs(crt, rel string) (string, error) {
-	var path string
-	if crt == "" {
-		path = rel
-	} else {
-		path = crt + "/" + rel
-	}
-	return filepath.Abs(path)
-}
-
 func isDir(dir string) bool {
 	f, err := os.Stat(dir)
 	return !os.IsNotExist(err) && f.IsDir()
+}
+
+func list(c net.Conn, st *status, path string) {
+	conn, err := net.Dial("tcp", st.addr)
+	if err != nil {
+		fmt.Fprintln(c, "425 No data connection")
+		return
+	}
+	defer conn.Close()
+	fmt.Fprintln(c, "150 Accepted data connection")
+
+	files, err := ioutil.ReadDir(st.dir + "/" + path)
+	if err != nil {
+		fmt.Fprintln(c, "550", err)
+		return
+	}
+	var paths []string
+	for _, file := range files {
+		if filename := file.Name(); !strings.HasPrefix(filename, ".") {
+			paths = append(paths, filename)
+		}
+	}
+
+	fmt.Fprintln(conn, strings.Join(paths, "\n"))
+	fmt.Fprintln(c, "226 List successfully transferred")
 }
 
 func retr(c net.Conn, st *status, filename string) {
