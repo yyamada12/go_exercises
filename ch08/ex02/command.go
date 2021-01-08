@@ -110,7 +110,7 @@ func handleCommand(cmd command, c net.Conn, st *status) {
 		}
 		fmt.Fprintln(c, "200 F OK")
 	case "PWD":
-		fmt.Fprintln(c, "257 Current directory is", `"`+st.dir+`"`)
+		fmt.Fprintln(c, "257", `"`+st.dir+`"`, "is your current location")
 	case "CWD":
 		if st.user == "" {
 			fmt.Fprintln(c, "530 You aren't logged in")
