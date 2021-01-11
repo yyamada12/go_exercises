@@ -90,6 +90,43 @@ func Example_array() {
 	// x[0].value = 3
 }
 
+func Example_mapWithArrayKey() {
+	m := map[[3]int]string{
+		{1, 2, 3}: "value",
+	}
+	Display("m", m)
+	// Output:
+	// Display m (map[[3]int]string):
+	// m[[1 2 3]] = "value"
+}
+
+func Example_mapWithStructKey() {
+	type s struct {
+		f1 string
+		f2 int
+	}
+	m := map[s]string{
+		{"foo", 1}: "value",
+	}
+	Display("m", m)
+	// Output:
+	// Display m (map[display.s]string):
+	// m[{"foo" 1}] = "value"
+}
+
+func Example_mapWithInterfaceKey() {
+	m := map[interface{}]string{
+		struct {
+			f1 string
+			f2 int
+		}{"foo", 1}: "value",
+	}
+	Display("m", m)
+	// Output:
+	// Display m (map[interface {}]string):
+	// m[{"foo" 1}] = "v1"
+}
+
 func Example_movie() {
 	//!+movie
 	type Movie struct {
