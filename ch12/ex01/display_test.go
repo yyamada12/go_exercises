@@ -124,7 +124,7 @@ func Example_mapWithInterfaceKey() {
 	Display("m", m)
 	// Output:
 	// Display m (map[interface {}]string):
-	// m[{"foo" 1}] = "v1"
+	// m[{"foo" 1}] = "value"
 }
 
 func Example_movie() {
