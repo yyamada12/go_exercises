@@ -1,6 +1,3 @@
-// Copyright © 2016 Alan A. A. Donovan & Brian W. Kernighan.
-// License: https://creativecommons.org/licenses/by-nc-sa/4.0/
-
 package display
 
 import (
@@ -93,11 +90,13 @@ func Example_array() {
 func Example_mapWithArrayKey() {
 	m := map[[3]int]string{
 		{1, 2, 3}: "value",
+		{2, 3, 4}: "value2",
 	}
 	Display("m", m)
-	// Output:
+	// Unordered output:
 	// Display m (map[[3]int]string):
 	// m[[1 2 3]] = "value"
+	// m[[2 3 4]] = "value2"
 }
 
 func Example_mapWithStructKey() {
@@ -107,11 +106,13 @@ func Example_mapWithStructKey() {
 	}
 	m := map[s]string{
 		{"foo", 1}: "value",
+		{"bar", 2}: "value2",
 	}
 	Display("m", m)
-	// Output:
+	// Unordered output:
 	// Display m (map[display.s]string):
 	// m[{"foo" 1}] = "value"
+	// m[{"bar" 2}] = "value2"
 }
 
 func Example_mapWithInterfaceKey() {
@@ -120,11 +121,15 @@ func Example_mapWithInterfaceKey() {
 			f1 string
 			f2 int
 		}{"foo", 1}: "value",
+		2:     "value2",
+		"bar": "value3",
 	}
 	Display("m", m)
-	// Output:
+	// Unordered output:
 	// Display m (map[interface {}]string):
 	// m[{"foo" 1}] = "value"
+	// m[2] = "value2"
+	// m["bar"] = "value3"
 }
 
 func Example_movie() {
