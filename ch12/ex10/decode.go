@@ -29,6 +29,8 @@ func Unmarshal(data []byte, out interface{}) (err error) {
 	return nil
 }
 
+var m map[string]reflect.Type = map[string]reflect.Type{"sexpr.strc": reflect.TypeOf(strc{})}
+
 type lexer struct {
 	scan  scanner.Scanner
 	token rune // the current token
@@ -129,6 +131,28 @@ func readList(lex *lexer, v reflect.Value) {
 			read(lex, v.FieldByName(name))
 			lex.consume(')')
 		}
+
+	case reflect.Interface: // (type value)
+		if lex.token != scanner.Ident {
+			panic(fmt.Sprintf("got token %q, want interface type", lex.text()))
+		}
+		typeName := ""
+		for {
+			if lex.token == '(' {
+				break
+			}
+			typeName += lex.text()
+			lex.next()
+		}
+
+		t, ok := m[typeName]
+		if !ok {
+			panic(fmt.Sprintf("got unkown type %q", typeName))
+		}
+
+		item := reflect.New(t).Elem()
+		read(lex, item)
+		v.Set(item)
 
 	case reflect.Map: // ((key value) ...)
 		v.Set(reflect.MakeMap(v.Type()))

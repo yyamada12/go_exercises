@@ -5,16 +5,18 @@ import (
 	"testing"
 )
 
-// Test verifies that encoding and decoding a complex data value
-// produces an equal result.
-//
-// The test does not make direct assertions about the encoded output
-// because the output depends on map iteration order, which is
-// nondeterministic.  The output of the t.Log statements can be
-// inspected by running the test with the -v flag:
-//
-// 	$ go test -v gopl.io/ch12/sexpr
-//
+type i interface {
+	Int() int
+}
+
+type strc struct {
+	I int
+}
+
+func (s strc) Int() int {
+	return s.I
+}
+
 func Test(t *testing.T) {
 	type Movie struct {
 		Title, Subtitle string
@@ -24,6 +26,7 @@ func Test(t *testing.T) {
 		Sequel          *string
 		Available       bool
 		Hour            float64
+		Series          i
 	}
 	strangelove := Movie{
 		Title:    "Dr. Strangelove",
@@ -45,6 +48,7 @@ func Test(t *testing.T) {
 		},
 		Available: true,
 		Hour:      2.3,
+		Series:    strc{1},
 	}
 
 	// Encode it
