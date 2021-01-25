@@ -29,7 +29,7 @@ func Unmarshal(data []byte, out interface{}) (err error) {
 	return nil
 }
 
-var m map[string]reflect.Type = map[string]reflect.Type{"sexpr.strc": reflect.TypeOf(strc{})}
+var m map[string]reflect.Type
 
 type lexer struct {
 	scan  scanner.Scanner

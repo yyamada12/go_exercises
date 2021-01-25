@@ -51,6 +51,8 @@ func Test(t *testing.T) {
 		Series:    strc{1},
 	}
 
+	m = map[string]reflect.Type{"sexpr.strc": reflect.TypeOf(strc{})}
+
 	// Encode it
 	data, err := Marshal(strangelove)
 	if err != nil {
